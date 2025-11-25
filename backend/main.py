@@ -38,3 +38,7 @@ def predict_hmpi(payload: dict):
     prediction = model.predict([features])[0]
 
     return {"prediction": float(prediction)}
+
+@app.get("/")
+def read_root():
+    return {"message": "Backend is running"}
