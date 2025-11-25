@@ -2,38 +2,8 @@ import { useState } from "react";
 import { FlaskConical, TestTubeDiagonal } from "lucide-react";
 import { Button } from "../ui/button";
 import { useNavigate } from "react-router-dom";
-
-// Define the permissible limits for each heavy metal
-const permissible_limits = {
-  "Lead (Pb)": 10, // µg/L
-  "Cadmium (Cd)": 5, // µg/L
-  "Mercury (Hg)": 6, // µg/L
-  "Arsenic (As)": 10, // µg/L
-  "Chromium (Cr)": 50, // µg/L
-  "Copper (Cu)": 2, // mg/L
-  "Zinc (Zn)": 3, // mg/L
-  "Nickel (Ni)": 70, // µg/L
-};
-
-// The HMPI calculation function
-const calculate_hmpi = (values) => {
-  let numerator = 0;
-  let denominator = 0;
-
-  // Iterate over each metal and calculate the HMPI
-  for (let metal in permissible_limits) {
-    const limit = permissible_limits[metal];
-    const Ci = values[metal] || 0; // Concentration entered by the user
-    const Li = limit; // Permissible limit
-    const Qi = (Ci / Li) * 100; // Quality rating
-    const Wi = 1 / Li; // Weight
-    numerator += Wi * Qi;
-    denominator += Wi;
-  }
-
-  // Return the final HMPI value
-  return denominator !== 0 ? (numerator / denominator).toFixed(3) : "NaN";
-};
+import { manual_calc } from "../../utils/functions/manualUpload";
+import { useViewReport } from "../../utils/functions/utility";
 
 export default function ManualUpload() {
   // State hooks for input values
@@ -82,13 +52,11 @@ export default function ManualUpload() {
     };
 
     // Call the calculate_hmpi function
-    const result = calculate_hmpi(values);
+    const result = manual_calc(values);
     setHmpi(result); // Set the result to state
   };
 
-  const viewReport = (event) => {
-    navigate("/analysis");
-  };
+  const viewReport = useViewReport();
 
   return (
     <div id="manual-entry-form" className="tab-content active">

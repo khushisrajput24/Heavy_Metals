@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "../components/ui/css/data_entry.css";
-import BulkUpload from "../components/functions/bulkUpload";
-import ManualUpload from "../components/functions/manualUpload";
-import APIUpload from "../components/functions/apiUpload";
+import BulkUpload from "../components/calculate/bulkUpload";
+import ManualUpload from "../components/calculate/manualUpload";
+import APIUpload from "../components/calculate/apiUpload";
 
 export const CalculateHMPI = () => {
   // State for tab switching
