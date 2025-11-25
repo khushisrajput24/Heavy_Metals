@@ -575,3 +575,14 @@ export const notifications = [
   "In-App Messages",
   "Weekly Summaries",
 ];
+
+export const permissible_limits = {
+  "Lead (Pb)": 10, // µg/L
+  "Cadmium (Cd)": 5, // µg/L
+  "Mercury (Hg)": 6, // µg/L
+  "Arsenic (As)": 10, // µg/L
+  "Chromium (Cr)": 50, // µg/L
+  "Copper (Cu)": 2, // mg/L
+  "Zinc (Zn)": 3, // mg/L
+  "Nickel (Ni)": 70, // µg/L
+};
