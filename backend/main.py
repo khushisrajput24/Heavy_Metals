@@ -1,11 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+import pandas as pd
 import numpy as np
 import pickle
 
 app = FastAPI()
 
-# CORS
+# -------------------------
+# CORS CONFIG
+# -------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,15 +17,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load the ML Model
+# -------------------------
+# LOAD MODELS
+# -------------------------
 with open("models/hmpi_api_basic.pkl", "rb") as f:
-    model = pickle.load(f)
+    api_model = pickle.load(f)
 
+with open("models/hmpi_bulk.pkl", "rb") as f:
+    bulk_model = pickle.load(f)
+
+# -------------------------
+# BASIC HMPI PREDICTION
+# -------------------------
 @app.post("/predict_hmpi")
 def predict_hmpi(payload: dict):
     api_key = payload.get("api_key")
 
-    # Replace this block with your real API logic later
+    # Replace later with real inputs
     metals = {
         "Pb": 1.2,
         "Cd": 0.3,
@@ -34,46 +45,24 @@ def predict_hmpi(payload: dict):
     }
 
     features = [
-        float(metals["Pb"]), float(metals["Cd"]), float(metals["Cr"]),
-        float(metals["As"]), float(metals["Zn"]), float(metals["Fe"]),
-        float(metals["Cu"])
+        metals["Pb"], metals["Cd"], metals["Cr"],
+        metals["As"], metals["Zn"], metals["Fe"],
+        metals["Cu"]
     ]
 
-    prediction = model.predict([features])[0]
+    prediction = api_model.predict([features])[0]
 
     return {
         "prediction": float(prediction),
         "used_api_key": api_key,
-        "metals_used": metals
+        "metals_used": metals,
     }
 
-@app.get("/")
-def read_root():
-    return {"message": "Backend is running"}
-
-from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-import pandas as pd
-import pickle
-import numpy as np
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Load bulk model
-with open("models/hmpi_bulk.pkl", "rb") as f:
-    bulk_model = pickle.load(f)
-
+# -------------------------
+# BULK HMPI PREDICTION
+# -------------------------
 @app.post("/predict_bulk_hmpi")
 async def predict_bulk_hmpi(file: UploadFile = File(...)):
-    # Read uploaded file
     contents = await file.read()
 
     # Detect file type
@@ -84,26 +73,25 @@ async def predict_bulk_hmpi(file: UploadFile = File(...)):
     else:
         return {"error": "Unsupported file type"}
 
-    # EXPECTED columns:
-    metals = ["pb", "cd", "hg", "as", "cr", "cu", "zn", "ni"]
+    expected_cols = ["pb", "cd", "hg", "as", "cr", "cu", "zn", "ni"]
 
-    if not all(col in df.columns for col in metals):
-        return {"error": "Missing required columns"}
+    if not all(col in df.columns for col in expected_cols):
+        return {"error": f"Missing required columns. Expected: {expected_cols}"}
 
-    X = df[metals]
+    X = df[expected_cols]
 
-    # Bulk ML predictions
     preds = bulk_model.predict(X)
-
     df["HMPI"] = preds
 
-    # Return results as JSON
     return {
         "rows": len(df),
         "predictions": preds.tolist(),
         "table": df.to_dict(orient="records")
     }
 
+# -------------------------
+# ROOT ROUTE
+# -------------------------
 @app.get("/")
 def home():
-    return {"msg": "Backend running"}
+    return {"message": "Backend is running"}
