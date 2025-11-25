@@ -1,62 +1,40 @@
 from fastapi import FastAPI
-import joblib
-import numpy as np
-import os
 from fastapi.middleware.cors import CORSMiddleware
+import numpy as np
+import pickle
 
 app = FastAPI()
 
-# CORS
+# --------------------------
+# CORS (Allow frontend to call backend)
+# --------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],   # In production put your Vercel domain here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load models from "models" folder
-MODEL_DIR = "models"
-MODELS = {}
+# --------------------------
+# Load the ML Model
+# --------------------------
+with open("models/hmpi_api_basic.pkl", "rb") as f:
+    model = pickle.load(f)
 
-for file in os.listdir(MODEL_DIR):
-    if file.endswith(".pkl"):
-        name = file.replace(".pkl", "")
-        MODELS[name] = joblib.load(f"{MODEL_DIR}/{file}")
+# --------------------------
+# Predict Endpoint
+# --------------------------
+@app.post("/predict_hmpi")
+def predict_hmpi(payload: dict):
+    data = payload["data"]
 
-# --------------------------------------------
-# DEBUG ENDPOINT (to check model type & keys)
-# --------------------------------------------
-@app.get("/debug_model/{model_name}")
-def debug_model(model_name: str):
-    obj = MODELS[model_name]
+    features = [
+        float(data["Pb"]), float(data["Cd"]), float(data["Cr"]),
+        float(data["As"]), float(data["Zn"]), float(data["Fe"]),
+        float(data["Cu"])
+    ]
 
-    if isinstance(obj, dict):
-        inner = obj.get("script")
+    prediction = model.predict([features])[0]
 
-        return {
-            "outer_type": "dict",
-            "outer_keys": list(obj.keys()),
-            "script_type": str(type(inner)),
-            "script_attrs": dir(inner)[:20]  # show first 20 attributes
-        }
-
-    return {"type": str(type(obj))}
-
-# --------------------------------------------
-
-
-@app.post("/predict/{model_name}")
-def predict(model_name: str, payload: dict):
-    if model_name not in MODELS:
-        return {"error": "Model not found"}
-
-    model = MODELS[model_name]
-    features = np.array(payload["features"]).reshape(1, -1)
-
-    pred = model.predict(features)[0]
-
-    return {
-        "model_used": model_name,
-        "prediction": float(pred)
-    }
+    return {"prediction": float(prediction)}
