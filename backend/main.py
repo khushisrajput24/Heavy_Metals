@@ -50,3 +50,60 @@ def predict_hmpi(payload: dict):
 @app.get("/")
 def read_root():
     return {"message": "Backend is running"}
+
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+import pandas as pd
+import pickle
+import numpy as np
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Load bulk model
+with open("models/hmpi_bulk.pkl", "rb") as f:
+    bulk_model = pickle.load(f)
+
+@app.post("/predict_bulk_hmpi")
+async def predict_bulk_hmpi(file: UploadFile = File(...)):
+    # Read uploaded file
+    contents = await file.read()
+
+    # Detect file type
+    if file.filename.endswith(".csv"):
+        df = pd.read_csv(pd.io.common.BytesIO(contents))
+    elif file.filename.endswith(".xlsx"):
+        df = pd.read_excel(pd.io.common.BytesIO(contents))
+    else:
+        return {"error": "Unsupported file type"}
+
+    # EXPECTED columns:
+    metals = ["pb", "cd", "hg", "as", "cr", "cu", "zn", "ni"]
+
+    if not all(col in df.columns for col in metals):
+        return {"error": "Missing required columns"}
+
+    X = df[metals]
+
+    # Bulk ML predictions
+    preds = bulk_model.predict(X)
+
+    df["HMPI"] = preds
+
+    # Return results as JSON
+    return {
+        "rows": len(df),
+        "predictions": preds.tolist(),
+        "table": df.to_dict(orient="records")
+    }
+
+@app.get("/")
+def home():
+    return {"msg": "Backend running"}
