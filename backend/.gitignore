@@ -9,8 +9,8 @@ lerna-debug.log*
 
 # .gitignore
 .env
+venv/
 
-backend/
 __pycache__/
 node_modules
 dist
