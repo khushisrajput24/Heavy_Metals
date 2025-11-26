@@ -4,13 +4,13 @@ import json
 import os
 from dotenv import load_dotenv
 from google import genai
+import time
 
 load_dotenv()
 SS_KEY = os.getenv("SEMANTIC_SCHOLAR_API_KEY")
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
-# 1) SEARCH PAPERS USING SEMANTIC SCHOLAR
-
+# 1) SEARCH PAPERS
 def search_papers(query, limit=5):
     url = "https://api.semanticscholar.org/graph/v1/paper/search"
     params = {
@@ -20,19 +20,17 @@ def search_papers(query, limit=5):
     }
     headers = {"x-api-key": SS_KEY}
 
-    resp = requests.get(url, params=params, headers=headers)
+    resp = requests.get(url, params=params, headers=headers, timeout=8)
     return resp.json().get("data", [])
 
 
-# 2) BUILD MINI CORPUS (local RAG dataset)
-
+# 2) BUILD CORPUS
 def build_corpus(papers):
     corpus = []
     for p in papers:
         paper_id = p.get("paperId")
         doi = p.get("doi")
 
-        # Prefer DOI → then fallback to Semantic Scholar page
         url = f"https://doi.org/{doi}" if doi else f"https://www.semanticscholar.org/paper/{paper_id}"
 
         corpus.append({
@@ -46,8 +44,7 @@ def build_corpus(papers):
     return corpus
 
 
-# 3) QUERY GEMINI WITH RESEARCH-CONTEXT
-
+# 3) QUERY GEMINI
 def ask_gemini(question, corpus):
     client = genai.Client(api_key=GEMINI_KEY)
 
@@ -64,34 +61,50 @@ Abstract: {d['abstract']}
 """
 
     prompt = f"""
-You are an AI assistant that answers ONLY using the provided research documents.
+You MUST return ONLY pure JSON.
+DO NOT output any prose, explanation, or text before/after the JSON.
 
-QUESTION:
-{question}
+Return EXACTLY this structure:
+
+{{
+  "immediate_actions": [{{"text": "", "citations": []}}],
+  "long_term": [{{"text": "", "citations": []}}],
+  "positive_indicators": [{{"text": "", "citations": []}}]
+}}
+
+QUESTION: {question}
 
 DOCUMENTS:
 {context}
-
-Your output MUST be JSON in the following structure:
-{{
-  "answer": "<your research-backed summary>",
-  "citations": [
-    {{"doc_id": "", "title": "", "doi": "", "url": ""}}
-  ]
-}}
 """
 
-    resp = client.responses.create(
-        model="gemini-2.5-flash",
-        input=prompt,
-        max_output_tokens=700
-    )
+    try:
+        resp = client.responses.create(
+            model="gemini-2.5-flash",
+            input=prompt,
+            max_output_tokens=700
+        )
+    except Exception as e:
+        print("Gemini error:", e)
+        return json.dumps({
+            "immediate_actions": [],
+            "long_term": [],
+            "positive_indicators": []
+        })
 
-    return resp.output_text
+    # Extract raw text
+    text = resp.output_text.strip()
+
+    # Extract JSON safely
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1:
+        return "{}"
+
+    return text[start:end+1]
 
 
-# 4) FULL PIPELINE FOR FASTAPI
-
+# 4) FULL PIPELINE
 async def get_suggestions_from_report(contaminant: str):
 
     query_map = {
@@ -102,41 +115,35 @@ async def get_suggestions_from_report(contaminant: str):
     }
 
     research_query = query_map.get(contaminant.lower())
-
     if not research_query:
         return {"error": "Unknown contaminant"}
 
+    # 1) Get papers
     papers = search_papers(research_query, limit=5)
     corpus = build_corpus(papers)
 
-    # Ask Gemini for categorized suggestions
+    # 2) Build question
     question = f"""
 Water quality is poor due to {contaminant}.
-Based ONLY on the research papers provided, generate:
-1. Immediate Actions
-2. Long-term Monitoring Steps
-3. Positive Indicators
+Based ONLY on these papers, generate suggestions with citations.
+"""
 
-For each point, attach a list of citation objects (doc_id, title, doi, url).
-
-Output JSON:
-{{
-  "immediate_actions": [
-    {{"text": "", "citations": []}}
-  ],
-  "long_term": [
-    {{"text": "", "citations": []}}
-  ],
-  "positive_indicators": [
-    {{"text": "", "citations": []}}
-  ]
-}}
-    """
-
+    # 3) Ask Gemini
     raw_output = ask_gemini(question, corpus)
 
-    return json.loads(raw_output)
+    # 4) Try parsing JSON
+    try:
+        return json.loads(raw_output)
+    except Exception as e:
+        print("JSON parse error:", e)
+        return {
+            "immediate_actions": [],
+            "long_term": [],
+            "positive_indicators": []
+        }
 
+
+# FASTAPI ROUTE
 suggestionRouter = APIRouter()
 
 @suggestionRouter.get("/user/analysis/suggestions")
