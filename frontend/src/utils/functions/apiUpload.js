@@ -12,7 +12,7 @@ export const handleAPIUpload = async (
 
   try {
     const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/predict_hmpi`,
+      `${import.meta.env.VITE_API_URL}/predict_api_hmpi`,
       { api_key: apiKey }
     );
 

@@ -48,7 +48,7 @@ export const handleBulkUpload = async (
 
       // Call backend
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/predict_hmpi`,
+        `${import.meta.env.VITE_API_URL}/predict_bulk_hmpi`,
         { data: metals }
       );
 
