@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
 import { Button } from "../ui/button";
 import { LanguageDropdown } from "../layout/languageDropdown";
+import { TextResize } from "../ui/TestResize";
 
 const NavbarHome = () => {
   const { user, isLoaded } = useUser();
@@ -24,6 +25,7 @@ const NavbarHome = () => {
       </nav>
 
       <nav className="header-right">
+        <TextResize />
         <LanguageDropdown />
         <div className="header-item">
           {user ? (

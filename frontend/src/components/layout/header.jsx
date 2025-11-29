@@ -5,6 +5,7 @@ import "./layout.css";
 import { Button } from "../ui/button";
 import { LanguageDropdown } from "./languageDropdown";
 import { Notifications } from "./notifications";
+import { TextResize } from "../ui/TestResize";
 
 export const Header = ({ userName, children }) => {
   const { user } = useUser();
@@ -55,6 +56,7 @@ export const Header = ({ userName, children }) => {
 
       <nav className="header-right">
         <Notifications />
+        <TextResize />
         <LanguageDropdown />
 
         {user ? (
