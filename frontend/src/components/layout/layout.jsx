@@ -30,7 +30,7 @@ export const Layout = () => {
           <header>
             <Header userName={userName} children={currentHeader} />
           </header>
-          <Outlet className="w-[72%]" />
+          <Outlet />
         </main>
         <Footer />
       </div>

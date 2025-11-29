@@ -29,9 +29,12 @@ const LandingPage = () => {
           Welcome to the Heavy Metals Analysis Platform
         </h1>
         <p className="mt-4 max-w-2xl text-gray-600 text-base sm:text-lg">
-          Your all-in-one solution for evaluating, mapping, and reporting heavy metal contamination. Our platform empowers researchers, students, industries, and environmental professionals to analyze data effortlessly using advanced scientific models.
-
-From calculating HMPI values to visualizing contamination on interactive maps, we provide everything you need to assess environmental quality with confidence.
+          Your all-in-one solution for evaluating, mapping, and reporting heavy
+          metal contamination. Our platform empowers researchers, students,
+          industries, and environmental professionals to analyze data
+          effortlessly using advanced scientific models. From calculating HMPI
+          values to visualizing contamination on interactive maps, we provide
+          everything you need to assess environmental quality with confidence.
         </p>
       </section>
       <div className='bg="black"'>
