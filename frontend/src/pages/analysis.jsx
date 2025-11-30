@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { Button } from "../components/ui/button";
 import "../components/ui/css/analysis.css";
 import {
   ChartLine,
@@ -8,7 +6,6 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import Graphs from "../components/graphs/graphs.jsx";
-// import { ExportReport } from "../utils/export";
 import PieChart from "../components/graphs/pieChart.jsx";
 import CompositeIndexChart from "../components/graphs/advanced/CompositeIndexChart.jsx";
 import CorrelationHeatmap from "../components/graphs/advanced/CorrelationHeatmap";
@@ -18,13 +15,11 @@ import ForecastingTrendChart from "../components/graphs/advanced/ForecastingTren
 import Summary from "../components/graphs/advanced/Summary.jsx";
 import Overview from "../components/graphs/advanced/Overview.jsx";
 import HandleExport from "../utils/declaration";
+import { SelectContam } from "../components/analysis/selectContam.jsx";
 //Graph dependecies end here
 
 export const Analysis = () => {
   // Tabs state control
-  const [activeTab, setActiveTab] = useState("metal-analysis");
-  // const [exporting, setExporting] = useState(false);
-  // const [hasExported, setHasExported] = useState(false);
 
   return (
     <div>
@@ -38,17 +33,7 @@ export const Analysis = () => {
       <main className="results-page">
         <div className="card">
           <div className="results-header">
-            {/* <Button
-              colorVariant="primary"
-              type="main"
-              onClickHandler={() => ExportReport("GW-001", setExporting)}
-              disabled={exporting}
-            >
-              {exporting ? "Exporting..." : "Export Report"}
-            </Button> */}
-
             <HandleExport />
-
             <div className="suggestion-group yellow px-4 py-2 rounded flex items-center gap-2">
               <div className="warning-text">
                 <FileWarning size={24} strokeWidth={1.8} />
@@ -57,6 +42,8 @@ export const Analysis = () => {
               </div>
             </div>
           </div>
+
+          <SelectContam />
 
           <div id="report-content">
             {/* Sample Information */}
@@ -84,7 +71,6 @@ export const Analysis = () => {
                 </div>
               </div>
             </div>
-
             {/* HMPI Assessment */}
             <div className="results-card">
               <h2 className="card-title">
@@ -123,38 +109,34 @@ export const Analysis = () => {
                 </div>
               </div>
             </div>
-
-            {/* Individual Analysis */}
-            {activeTab === "metal-analysis" && (
-              <div>
-                <Overview />
-                <div className="results-card">
-                  <h2 className="section-title text-2xl">
-                    Individual Heavy Metal Analysis
-                  </h2>
-                  <p className="section-subtitle">
-                    Detailed breakdown of each heavy metal concentration.
-                  </p>
-                  <Graphs />
-                </div>
-                <div>
-                  <div className="chart-grid">
-                    <CompositeIndexChart />
-                    <PieChart />
-                  </div>
-
-                  <CorrelationHeatmap />
-                  <EnrichmentFactorChart />
-                  <ResultStandardsChart />
-                  <ForecastingTrendChart />
-                  <Summary />
-                </div>
+            {/* Detailed Analysis Section */}
+            <div>
+              <Overview />
+              <div className="results-card">
+                <h2 className="section-title text-2xl">
+                  Individual Heavy Metal Analysis
+                </h2>
+                <p className="section-subtitle">
+                  Detailed breakdown of each heavy metal concentration.
+                </p>
+                <Graphs />
               </div>
-            )}
+              <div>
+                <div className="chart-grid">
+                  <CompositeIndexChart />
+                  <PieChart />
+                </div>
+
+                <CorrelationHeatmap />
+                <EnrichmentFactorChart />
+                <ResultStandardsChart />
+                <ForecastingTrendChart />
+                <Summary />
+              </div>
+            </div>
           </div>
         </div>
       </main>
     </div>
   );
 };
-

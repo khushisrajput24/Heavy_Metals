@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { CircleCheckBig, CircleStar, MonitorCheck, Target } from "lucide-react";
 import { Button } from "../ui/button.jsx";
 
-export const Suggestion = ({ contaminant }) => {
+export const Suggestion = () => {
+  const { contaminant } = useParams(); // <-- Get dynamic contaminant from URL
   const [data, setData] = useState(null);
   const [expandedGroups, setExpandedGroups] = useState({
     yellow: false,
@@ -10,15 +12,18 @@ export const Suggestion = ({ contaminant }) => {
     green: false,
   });
 
-  // Fetch research-backed suggestions from backend
   useEffect(() => {
     const fetchSuggestions = async () => {
       try {
+        const BASE_URL =
+          window.location.hostname === "localhost"
+            ? "http://127.0.0.1:8000"
+            : import.meta.env.VITE_API_URL;
+
         const res = await fetch(
-          `${
-            import.meta.env.VITE_API_URL
-          }/user/analysis/suggestions?contaminant=${contaminant}`
+          `${BASE_URL}/user/analysis/suggestions?contaminant=${contaminant}`
         );
+
         const json = await res.json();
         setData(json);
       } catch (err) {
@@ -26,7 +31,7 @@ export const Suggestion = ({ contaminant }) => {
       }
     };
 
-    fetchSuggestions();
+    if (contaminant) fetchSuggestions();
   }, [contaminant]);
 
   const expandExplain = (group) => {
@@ -45,13 +50,13 @@ export const Suggestion = ({ contaminant }) => {
     <div id="suggestions" className="results-section active">
       <h2 className="card-title">
         <CircleStar size={24} strokeWidth={1.8} />
-        Expert suggestions
+        Expert suggestions for <span className="capitalize">{contaminant}</span>
       </h2>
       <p className="card-subtitle">
         Based on the analysis results, here are our professional suggestions
       </p>
 
-      {/* YELLOW GROUP — IMMEDIATE ACTIONS (from API) */}
+      {/* YELLOW GROUP */}
       <div className="suggestion-group yellow">
         <p className="group-title">
           <Target size={20} strokeWidth={1.8} />
@@ -104,7 +109,7 @@ export const Suggestion = ({ contaminant }) => {
         )}
       </div>
 
-      {/* BLUE GROUP — LONG-TERM MONITORING (from API) */}
+      {/* BLUE GROUP */}
       <div className="suggestion-group blue">
         <p className="group-title">
           <MonitorCheck size={20} strokeWidth={1.8} />
@@ -157,7 +162,7 @@ export const Suggestion = ({ contaminant }) => {
         )}
       </div>
 
-      {/* GREEN GROUP — POSITIVE INDICATORS (from API)*/}
+      {/* GREEN GROUP */}
       <div className="suggestion-group green">
         <h3 className="group-title">
           <CircleCheckBig size={20} strokeWidth={1.8} />

@@ -50,9 +50,9 @@ const router = createBrowserRouter([
         handle: { header: "Methodology" },
       },
       {
-        path: "analysis/suggestions",
-        element: <Suggestion contaminant="lead" />,
-        handle: { header: "Suggestion" },
+        path: "analysis/suggestions/:contaminant",
+        element: <Suggestion />,
+        handle: { header: "Suggestions" },
       },
       {
         path: "settings",
