@@ -7,17 +7,18 @@ export const handleFileSelect = (event, setFile) => {
   }
 };
 
-// Called when clicking Calculate HMPI
 export const handleBulkUpload = async (
   event,
   file,
   setLoading,
-  setPrediction
+  setPrediction,
+  setError
 ) => {
   event.preventDefault();
 
   if (!file) {
-    alert("Please upload a file first!");
+    setError("Please upload a file first!");
+    setPrediction(null);
     return;
   }
 
@@ -28,38 +29,48 @@ export const handleBulkUpload = async (
     const reader = new FileReader();
 
     reader.onload = async (e) => {
-      const text = e.target.result;
+      try {
+        const text = e.target.result;
 
-      // TODO: Parse CSV into metal values (first row for now)
-      const rows = text.split("\n").map((row) => row.split(","));
-      const header = rows[0];
-      const values = rows[1];
+        // Parse CSV
+        const rows = text.split("\n").map((row) => row.split(","));
+        const header = rows[0].map((h) => h.trim().toLowerCase());
+        const values = rows[1];
 
-      // Build metals object for model
-      const metals = {
-        Pb: values[header.indexOf("pb")],
-        Cd: values[header.indexOf("cd")],
-        Cr: values[header.indexOf("cr")],
-        As: values[header.indexOf("as")],
-        Zn: values[header.indexOf("zn")],
-        Fe: values[header.indexOf("fe")],
-        Cu: values[header.indexOf("cu")],
-      };
+        // Metals object
+        const metals = {
+          Pb: values[header.indexOf("pb")],
+          Cd: values[header.indexOf("cd")],
+          Cr: values[header.indexOf("cr")],
+          As: values[header.indexOf("as")],
+          Zn: values[header.indexOf("zn")],
+          Fe: values[header.indexOf("fe")],
+          Cu: values[header.indexOf("cu")],
+        };
 
-      // Call backend
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/predict_bulk_hmpi`,
-        { data: metals }
-      );
+        // Auto URL selection
+        const BASE_URL =
+          window.location.hostname === "localhost"
+            ? "http://127.0.0.1:8000"
+            : import.meta.env.VITE_API_URL;
 
-      setPrediction(response.data.prediction);
-      setLoading(false);
+        const response = await axios.post(`${BASE_URL}/predict_bulk_hmpi`, {
+          data: metals,
+        });
+
+        setPrediction(response.data.prediction);
+      } catch (err) {
+        console.error(err);
+        setPrediction("Error processing file or backend failure");
+      } finally {
+        setLoading(false);
+      }
     };
 
     reader.readAsText(file);
   } catch (error) {
     console.error(error);
-    setPrediction("Backend not reachable");
+    setPrediction("Unable to read file");
     setLoading(false);
   }
 };

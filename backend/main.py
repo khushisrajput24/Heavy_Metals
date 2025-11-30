@@ -1,48 +1,39 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-import pandas as pd
-import numpy as np
-import pickle
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
-app = FastAPI()
+from controllers.hmpiCalc import predict_api_hmpi as predict_api_hmpi_impl
+from controllers.suggestionsController import suggestionRouter as suggestions_router
 
-# CORS CONFIG
-origins = [
-    os.getenv("CORS_ORIGIN"),
-    "http://localhost:5173",   # optional for local development
-]
+app = FastAPI(title="HMPI Backend")
+
+# CORS
+FRONTEND_URL = os.getenv("CORS_ORIGIN")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        FRONTEND_URL,  # deployed frontend from .env
+    ],
+    allow_origin_regex="https?://.*",   # fallback for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# PREDICT CONTROLLERS
-from controllers.hmpiCalc import predict_api_hmpi as predict_api_hmpi_impl
-# from controllers.hmpiCalc import predict_bulk_hmpi as predict_bulk_hmpi_impl
-
-# API HMPI PREDICTION
+# API HMPI PREDICTION ROUTE
 @app.post("/predict_api_hmpi")
 async def predict_api_hmpi(payload: dict):
-    api_key = payload.get("api_key")
-    # delegate to the controller implementation
     return predict_api_hmpi_impl(payload)
 
-# BULK HMPI PREDICTION
-# @app.post("/predict_bulk_hmpi")
-# async def predict_bulk_hmpi(file: UploadFile = File(...)):
-    # return await predict_bulk_hmpi_impl(file)
-
-
-# SUGGESTIONS ROUTE
-from controllers.suggestionsController import suggestionRouter as suggestions_router
+# Suggestions Router
 app.include_router(suggestions_router, tags=["suggestions"])
 
-# ROOT ROUTE
+# Root Route
 @app.get("/")
 def home():
-    return {"message": "Backend is running"}
+    return {"message": "HMPI Backend Running Successfully"}

@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { FlaskConical, TestTubeDiagonal } from "lucide-react";
 import { Button } from "../ui/button";
-import { useNavigate } from "react-router-dom";
-import { manual_calc } from "../../utils/functions/manualUpload";
+import { handleManualSubmit } from "../../utils/functions/manualUpload";
 import { useViewReport } from "../../utils/functions/utility";
 
 export default function ManualUpload() {
-  // State hooks for input values
   const [formData, setFormData] = useState({
     sampleId: "",
     depth: "",
@@ -22,45 +20,27 @@ export default function ManualUpload() {
     nickel: "",
   });
 
+  const [errors, setErrors] = useState({}); // { fieldName: "error message" }
   const [hmpi, setHmpi] = useState(null);
 
-  const navigate = useNavigate();
-
-  // Handle form input change
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData((prev) => ({
+      ...prev,
       [id]: value,
     }));
-  };
-
-  // Handle form submission
-  const handleManualSubmit = (event) => {
-    event.preventDefault();
-
-    // Prepare the input data for the calculation
-    const values = {
-      "Lead (Pb)": parseFloat(formData.lead),
-      "Cadmium (Cd)": parseFloat(formData.cadmium),
-      "Mercury (Hg)": parseFloat(formData.mercury),
-      "Arsenic (As)": parseFloat(formData.arsenic),
-      "Chromium (Cr)": parseFloat(formData.chromium),
-      "Copper (Cu)": parseFloat(formData.copper),
-      "Zinc (Zn)": parseFloat(formData.zinc),
-      "Nickel (Ni)": parseFloat(formData.nickel),
-    };
-
-    // Call the calculate_hmpi function
-    const result = manual_calc(values);
-    setHmpi(result); // Set the result to state
+    // clear error while typing
+    setErrors((prev) => ({ ...prev, [id]: "" }));
   };
 
   const viewReport = useViewReport();
 
   return (
     <div id="manual-entry-form" className="tab-content active">
-      <form className="calculator-form" onSubmit={handleManualSubmit}>
+      <form
+        className="calculator-form"
+        onSubmit={(e) => handleManualSubmit(e, formData, setHmpi, setErrors)}
+      >
         <div className="card-section">
           <h2 className="card-title">
             <FlaskConical size={20} strokeWidth={2} />
@@ -79,7 +59,11 @@ export default function ManualUpload() {
                 value={formData.sampleId}
                 onChange={handleInputChange}
               />
+              {errors.sampleId && (
+                <p className="text-red-500 text-xs mt-1">{errors.sampleId}</p>
+              )}
             </div>
+
             <div className="input-group">
               <label htmlFor="depth">Depth (m)</label>
               <input
@@ -89,7 +73,11 @@ export default function ManualUpload() {
                 value={formData.depth}
                 onChange={handleInputChange}
               />
+              {errors.depth && (
+                <p className="text-red-500 text-xs mt-1">{errors.depth}</p>
+              )}
             </div>
+
             <div className="input-group">
               <label htmlFor="latitude">Latitude</label>
               <input
@@ -99,7 +87,11 @@ export default function ManualUpload() {
                 value={formData.latitude}
                 onChange={handleInputChange}
               />
+              {errors.latitude && (
+                <p className="text-red-500 text-xs mt-1">{errors.latitude}</p>
+              )}
             </div>
+
             <div className="input-group">
               <label htmlFor="longitude">Longitude</label>
               <input
@@ -109,10 +101,14 @@ export default function ManualUpload() {
                 value={formData.longitude}
                 onChange={handleInputChange}
               />
+              {errors.longitude && (
+                <p className="text-red-500 text-xs mt-1">{errors.longitude}</p>
+              )}
             </div>
           </div>
         </div>
 
+        {/* metals */}
         <div className="card-section">
           <h2 className="card-title">
             <TestTubeDiagonal size={20} strokeWidth={2} />
@@ -122,7 +118,6 @@ export default function ManualUpload() {
             Enter the concentration values for each heavy metal detected
           </p>
           <div className="input-grid metal-grid">
-            {/* Repeat for each metal */}
             <div className="input-group">
               <label htmlFor="lead">
                 Lead (Pb) <span className="limit">Limit: 10 µg/L</span>
@@ -134,7 +129,13 @@ export default function ManualUpload() {
                 value={formData.lead}
                 onChange={handleInputChange}
               />
+              {errors.lead && (
+                <p className="text-red-500 text-xs mt-1">{errors.lead}</p>
+              )}
             </div>
+
+            {/* Repeat pattern for other metals */}
+            {/* cadmium */}
             <div className="input-group">
               <label htmlFor="cadmium">
                 Cadmium (Cd) <span className="limit">Limit: 5 µg/L</span>
@@ -146,7 +147,12 @@ export default function ManualUpload() {
                 value={formData.cadmium}
                 onChange={handleInputChange}
               />
+              {errors.cadmium && (
+                <p className="text-red-500 text-xs mt-1">{errors.cadmium}</p>
+              )}
             </div>
+
+            {/* mercury */}
             <div className="input-group">
               <label htmlFor="mercury">
                 Mercury (Hg) <span className="limit">Limit: 6 µg/L</span>
@@ -158,7 +164,12 @@ export default function ManualUpload() {
                 value={formData.mercury}
                 onChange={handleInputChange}
               />
+              {errors.mercury && (
+                <p className="text-red-500 text-xs mt-1">{errors.mercury}</p>
+              )}
             </div>
+
+            {/* arsenic */}
             <div className="input-group">
               <label htmlFor="arsenic">
                 Arsenic (As) <span className="limit">Limit: 10 µg/L</span>
@@ -170,7 +181,12 @@ export default function ManualUpload() {
                 value={formData.arsenic}
                 onChange={handleInputChange}
               />
+              {errors.arsenic && (
+                <p className="text-red-500 text-xs mt-1">{errors.arsenic}</p>
+              )}
             </div>
+
+            {/* chromium */}
             <div className="input-group">
               <label htmlFor="chromium">
                 Chromium (Cr) <span className="limit">Limit: 50 µg/L</span>
@@ -182,7 +198,12 @@ export default function ManualUpload() {
                 value={formData.chromium}
                 onChange={handleInputChange}
               />
+              {errors.chromium && (
+                <p className="text-red-500 text-xs mt-1">{errors.chromium}</p>
+              )}
             </div>
+
+            {/* copper */}
             <div className="input-group">
               <label htmlFor="copper">
                 Copper (Cu) <span className="limit">Limit: 2 mg/L</span>
@@ -194,7 +215,12 @@ export default function ManualUpload() {
                 value={formData.copper}
                 onChange={handleInputChange}
               />
+              {errors.copper && (
+                <p className="text-red-500 text-xs mt-1">{errors.copper}</p>
+              )}
             </div>
+
+            {/* zinc */}
             <div className="input-group">
               <label htmlFor="zinc">
                 Zinc (Zn) <span className="limit">Limit: 3 mg/L</span>
@@ -206,7 +232,12 @@ export default function ManualUpload() {
                 value={formData.zinc}
                 onChange={handleInputChange}
               />
+              {errors.zinc && (
+                <p className="text-red-500 text-xs mt-1">{errors.zinc}</p>
+              )}
             </div>
+
+            {/* nickel */}
             <div className="input-group">
               <label htmlFor="nickel">
                 Nickel (Ni) <span className="limit">Limit: 70 µg/L</span>
@@ -218,6 +249,9 @@ export default function ManualUpload() {
                 value={formData.nickel}
                 onChange={handleInputChange}
               />
+              {errors.nickel && (
+                <p className="text-red-500 text-xs mt-1">{errors.nickel}</p>
+              )}
             </div>
           </div>
         </div>
@@ -229,7 +263,6 @@ export default function ManualUpload() {
         </div>
       </form>
 
-      {/* Display the calculated HMPI */}
       {hmpi !== null && (
         <div className="flex justify-between items-center gap-4 m-4">
           <h3 className="text-lg font-bold text-[#225ca3] leading-none">

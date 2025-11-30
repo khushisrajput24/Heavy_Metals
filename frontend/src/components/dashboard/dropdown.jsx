@@ -22,7 +22,7 @@ const Dropdown = () => {
       </NavLink>
 
       <NavLink
-        to="/user/analysis/suggestions"
+        to={"/user/analysis/"}
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive

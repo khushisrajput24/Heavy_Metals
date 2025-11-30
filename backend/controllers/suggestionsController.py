@@ -1,151 +1,238 @@
 from fastapi import APIRouter
 import requests
-import json
-import os
-from dotenv import load_dotenv
-from google import genai
 import time
+import json
+import re
+from typing import List, Dict, Any
+from google import genai
+import os
 
-load_dotenv()
-SS_KEY = os.getenv("SEMANTIC_SCHOLAR_API_KEY")
+# Load Gemini key
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
-# 1) SEARCH PAPERS
-def search_papers(query, limit=5):
-    url = "https://api.semanticscholar.org/graph/v1/paper/search"
-    params = {
-        "query": query,
-        "limit": limit,
-        "fields": "title,authors,year,abstract,doi,url"
-    }
-    headers = {"x-api-key": SS_KEY}
+suggestionRouter = APIRouter()
 
-    resp = requests.get(url, params=params, headers=headers, timeout=8)
-    return resp.json().get("data", [])
+# FAST MODE — 6 PAPERS
+PAPERS_LIMIT = 6
 
+# JSON CLEANER
 
-# 2) BUILD CORPUS
-def build_corpus(papers):
-    corpus = []
-    for p in papers:
-        paper_id = p.get("paperId")
-        doi = p.get("doi")
+def extract_json_from_text(raw: str):
+    if not raw:
+        return None
+    raw = re.sub(r"```.*?```", "", raw, flags=re.DOTALL)
+    raw = raw.replace("`", "").strip()
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start == -1 or end == -1:
+        return None
+    return raw[start:end+1]
 
-        url = f"https://doi.org/{doi}" if doi else f"https://www.semanticscholar.org/paper/{paper_id}"
+# GEMINI CALL (Correct version)
 
-        corpus.append({
-            "id": paper_id,
-            "title": p.get("title"),
-            "abstract": p.get("abstract", ""),
-            "year": p.get("year"),
-            "doi": doi,
-            "url": url
-        })
-    return corpus
-
-
-# 3) QUERY GEMINI
-def ask_gemini(question, corpus):
+def call_gemini(prompt: str):
+    
     client = genai.Client(api_key=GEMINI_KEY)
 
-    context = ""
-    for d in corpus:
-        context += f"""
-[DOC:{d['id']}]
-Title: {d['title']}
-Year: {d['year']}
-DOI: {d['doi']}
-URL: {d['url']}
-Abstract: {d['abstract']}
----
+    for _ in range(2):  # retry once
+        try:
+            resp = client.models.generate(
+                model="gemini-1.5-flash",
+                prompt=prompt,
+                max_output_tokens=1000,
+            )
+            text = resp.text
+            if text and "{" in text:
+                return text
+        except Exception as e:
+            print("[Gemini Error]", e)
+        time.sleep(0.4)
+
+    return ""
+
+# CROSSREF PAPER SEARCH
+
+def search_crossref_papers(query: str):
+    print("[CrossRef] Query:", query)
+
+    params = {
+        "query": query,
+        "select": "title,DOI,author,issued,abstract",
+        "rows": PAPERS_LIMIT
+    }
+
+    try:
+        resp = requests.get("https://api.crossref.org/works", params=params, timeout=10)
+        resp.raise_for_status()
+
+        items = resp.json()["message"]["items"]
+        papers = []
+
+        for it in items:
+            title = it["title"][0] if it.get("title") else ""
+            doi = it.get("DOI", "")
+            url = f"https://doi.org/{doi}" if doi else ""
+
+            # Authors
+            authors = []
+            if it.get("author"):
+                for a in it["author"]:
+                    name = (a.get("given","") + " " + a.get("family","")).strip()
+                    if name:
+                        authors.append(name)
+
+            # Year
+            year = None
+            if it.get("issued") and it["issued"].get("date-parts"):
+                year = it["issued"]["date-parts"][0][0]
+
+            # Clean abstract
+            abstract = it.get("abstract", "")
+            abstract = re.sub("<.*?>", "", abstract)
+
+            papers.append({
+                "id": doi or title[:15],
+                "title": title,
+                "abstract": abstract,
+                "authors": authors,
+                "year": year,
+                "doi": doi,
+                "url": url
+            })
+
+        return papers
+
+    except Exception as e:
+        print("[CrossRef Error]", e)
+        return []
+
+# SUMMARIZE PAPER
+
+def summarize_paper(p):
+    prompt = f"""
+Return ONLY JSON like:
+{{
+ "id": "{p['id']}",
+ "title": "{p['title']}",
+ "authors": {p['authors']},
+ "year": {p['year'] or "null"},
+ "doi": "{p['doi']}",
+ "short_summary": "",
+ "key_findings": [],
+ "relevance_tags": []
+}}
+Paper abstract:
+{p['abstract']}
 """
 
-    prompt = f"""
-You MUST return ONLY pure JSON.
-DO NOT output any prose, explanation, or text before/after the JSON.
+    raw = call_gemini(prompt)
+    cleaned = extract_json_from_text(raw)
+    if not cleaned:
+        return None
 
-Return EXACTLY this structure:
+    try:
+        return json.loads(cleaned)
+    except:
+        return None
+
+# GENERATE SUGGESTIONS
+
+def generate_suggestions(summaries, contaminant):
+    context = ""
+    for s in summaries:
+        context += f"[PAPER:{s['id']}] {s['title']} ({s['year']})\n"
+        context += f"Summary: {s['short_summary']}\n---\n"
+
+    prompt = f"""
+Using ONLY this evidence, return JSON:
 
 {{
-  "immediate_actions": [{{"text": "", "citations": []}}],
-  "long_term": [{{"text": "", "citations": []}}],
-  "positive_indicators": [{{"text": "", "citations": []}}]
+ "immediate_actions": [{{"id": "", "text": "", "supported_by": []}}],
+ "long_term": [{{"id": "", "text": "", "supported_by": []}}],
+ "positive_indicators": [{{"id": "", "text": "", "supported_by": []}}]
 }}
 
-QUESTION: {question}
+Rules:
+- Use only valid PAPER IDs.
+- 2–3 items per category.
+- No hallucinated papers.
 
-DOCUMENTS:
+Contaminant: {contaminant}
+
+Evidence:
 {context}
 """
 
+    raw = call_gemini(prompt)
+    cleaned = extract_json_from_text(raw)
+    if not cleaned:
+        return None
+
     try:
-        resp = client.responses.create(
-            model="gemini-2.5-flash",
-            input=prompt,
-            max_output_tokens=700
-        )
-    except Exception as e:
-        print("Gemini error:", e)
-        return json.dumps({
-            "immediate_actions": [],
-            "long_term": [],
-            "positive_indicators": []
-        })
+        return json.loads(cleaned)
+    except:
+        return None
 
-    # Extract raw text
-    text = resp.output_text.strip()
+# INJECT CITATIONS
 
-    # Extract JSON safely
-    start = text.find("{")
-    end = text.rfind("}")
-    if start == -1 or end == -1:
-        return "{}"
+def inject_citations(suggestions, papers_map):
+    def exp(items):
+        arr = []
+        for it in items:
+            citations = []
+            for pid in it.get("supported_by", []):
+                if pid in papers_map:
+                    citations.append(papers_map[pid])
 
-    return text[start:end+1]
+            arr.append({
+                "text": it.get("text", ""),
+                "citations": citations
+            })
+        return arr
 
-
-# 4) FULL PIPELINE
-async def get_suggestions_from_report(contaminant: str):
-
-    query_map = {
-        "lead": "lead removal water treatment adsorption remediation heavy metals",
-        "cadmium": "cadmium removal wastewater treatment adsorption remediation",
-        "arsenic": "arsenic removal drinking water improvement membrane adsorption",
-        "mercury": "mercury removal water treatment adsorption detoxification"
+    return {
+        "immediate_actions": exp(suggestions.get("immediate_actions", [])),
+        "long_term": exp(suggestions.get("long_term", [])),
+        "positive_indicators": exp(suggestions.get("positive_indicators", [])),
     }
 
-    research_query = query_map.get(contaminant.lower())
-    if not research_query:
-        return {"error": "Unknown contaminant"}
+# FALLBACK
 
-    # 1) Get papers
-    papers = search_papers(research_query, limit=5)
-    corpus = build_corpus(papers)
+def fallback(contaminant):
+    return {
+        "immediate_actions": [{"text": f"Reduce {contaminant} exposure immediately.", "citations": []}],
+        "long_term": [{"text": f"Monitor {contaminant} in water regularly.", "citations": []}],
+        "positive_indicators": [{"text": f"{contaminant} levels are manageable with proper treatment.", "citations": []}],
+    }
 
-    # 2) Build question
-    question = f"""
-Water quality is poor due to {contaminant}.
-Based ONLY on these papers, generate suggestions with citations.
-"""
+# MAIN PIPELINE
 
-    # 3) Ask Gemini
-    raw_output = ask_gemini(question, corpus)
+async def get_suggestions(contaminant: str):
+    query = f"{contaminant} water contamination removal treatment adsorption remediation"
 
-    # 4) Try parsing JSON
-    try:
-        return json.loads(raw_output)
-    except Exception as e:
-        print("JSON parse error:", e)
-        return {
-            "immediate_actions": [],
-            "long_term": [],
-            "positive_indicators": []
-        }
+    papers = search_crossref_papers(query)
+    if not papers:
+        return fallback(contaminant)
 
+    summaries = []
+    for p in papers:
+        s = summarize_paper(p)
+        if s:
+            summaries.append(s)
 
-# FASTAPI ROUTE
-suggestionRouter = APIRouter()
+    if not summaries:
+        return fallback(contaminant)
+
+    suggestions = generate_suggestions(summaries, contaminant)
+    if not suggestions:
+        return fallback(contaminant)
+
+    pmap = {p["id"]: p for p in papers}
+
+    return inject_citations(suggestions, pmap)
+
+# ROUTE
 
 @suggestionRouter.get("/user/analysis/suggestions")
-async def suggestions(contaminant: str):
-    return await get_suggestions_from_report(contaminant)
+async def api_suggestions(contaminant: str):
+    return await get_suggestions(contaminant)

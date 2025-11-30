@@ -10,9 +10,15 @@ import {
 export default function BulkUpload() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [prediction, setPrediction] = useState(null);
 
   const viewReport = useViewReport();
+
+  const onFileChange = (e) => {
+    handleFileSelect(e, setFile);
+    setError(null);
+  };
 
   return (
     <div id="bulk-upload-form" className="tab-content active">
@@ -39,7 +45,7 @@ export default function BulkUpload() {
             id="file-upload"
             accept=".csv"
             style={{ display: "none" }}
-            onChange={(e) => handleFileSelect(e, setFile)}
+            onChange={onFileChange}
           />
         </div>
       </div>
@@ -53,11 +59,19 @@ export default function BulkUpload() {
         </div>
       )}
 
+      {error && (
+        <div className="card-section">
+          <p className="text-xs mt-2 text-red-500 !text-red-500">{error}</p>
+        </div>
+      )}
+
       <div className="button-container">
         <button
           type="submit"
           className="btn calculate-btn"
-          onClick={(e) => handleBulkUpload(e, file, setLoading, setPrediction)}
+          onClick={(e) =>
+            handleBulkUpload(e, file, setLoading, setPrediction, setError)
+          }
         >
           {loading ? "Calculating..." : "Calculate HMPI"}
         </button>

@@ -6,10 +6,16 @@ import { useViewReport } from "../../utils/functions/utility";
 
 export default function APIUpload() {
   const [apiKey, setApiKey] = useState("");
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState(null);
 
   const viewReport = useViewReport();
+
+  const onChangeApiKey = (e) => {
+    setApiKey(e.target.value);
+    setError(null); // type karte hi error hata do (optional)
+  };
 
   return (
     <div id="bulk-upload-form" className="tab-content active">
@@ -26,8 +32,9 @@ export default function APIUpload() {
             id="api_key"
             placeholder="Enter your Data API key"
             value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
+            onChange={onChangeApiKey}
           />
+          {error && <p className="text-xs mt-1 !text-red-500">{error}</p>}
         </div>
       </div>
 
@@ -35,7 +42,9 @@ export default function APIUpload() {
         <button
           type="submit"
           className="btn calculate-btn"
-          onClick={(e) => handleAPIUpload(e, apiKey, setLoading, setPrediction)}
+          onClick={(e) =>
+            handleAPIUpload(e, apiKey, setLoading, setPrediction, setError)
+          }
         >
           {loading ? "Calculating..." : "Calculate HMPI"}
         </button>
