@@ -47,7 +47,7 @@ export const handleBulkUpload = async (
     }
 
     // Show output from first row only
-    setPrediction(response.data.results[0].output);
+    setPrediction(response.data);
   } catch (error) {
     console.error(error);
     setError("Backend error or network failure.");

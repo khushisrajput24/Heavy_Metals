@@ -6,6 +6,7 @@ import {
   handleFileSelect,
   handleBulkUpload,
 } from "../../utils/functions/bulkUpload";
+import { CalcTable } from "../ui/calcTable";
 
 export default function BulkUpload() {
   const [file, setFile] = useState(null);
@@ -21,7 +22,7 @@ export default function BulkUpload() {
   };
 
   return (
-    <div id="bulk-upload-form" className="tab-content active">
+    <div id="bulk-upload-form" className="w-[80%] mx-auto">
       <h2 className="card-title">
         <FolderUp size={24} strokeWidth={2} />
         Bulk Data Upload
@@ -66,15 +67,14 @@ export default function BulkUpload() {
       )}
 
       <div className="requirements-card">
-  <h3>File Format Requirements:</h3>
-  <ul>
-    <li>First row should contain column headers</li>
-    <li>Include columns: sample_id, latitude, longitude, depth</li>
-    <li>Heavy metal columns: Pb, Cd, Hg, As, Cr, Cu, Zn, Ni</li>
-    <li>Use numeric values only for concentrations</li>
-  </ul>
-</div>
-
+        <h3>File Format Requirements:</h3>
+        <ul>
+          <li>First row should contain column headers</li>
+          <li>Include columns: sample_id, latitude, longitude, depth</li>
+          <li>Heavy metal columns: Pb, Cd, Hg, As, Cr, Cu, Zn, Ni</li>
+          <li>Use numeric values only for concentrations</li>
+        </ul>
+      </div>
 
       <div className="button-container">
         <button
@@ -88,42 +88,7 @@ export default function BulkUpload() {
         </button>
       </div>
 
-      {prediction && (
-        <div className="center">
-          <div>
-            <h3 className="calculated-title">Calculated Values:</h3>
-            <ul className="calculated-list">
-              <li>
-                <b>HPI:</b> {prediction.HMPI_formula.toFixed(4)}
-              </li>
-              <li>
-                <b>HEI:</b> {prediction.HEI.toFixed(4)}
-              </li>
-              <li>
-                <b>Cd:</b> {prediction.Cd_excess.toFixed(4)}
-              </li>
-              <li>
-                <b>MI:</b> {prediction.MI.toFixed(4)}
-              </li>
-              {/* <li>CI: {prediction.CI}</li> */}
-            </ul>
-            <div className="flex justify-between items-center gap-4 m-4">
-              <h3 className="text-lg font-bold text-[#225ca3] leading-none">
-                Report Analysis Ready
-              </h3>
-
-              <Button
-                type="main"
-                colorVariant="secondary"
-                onClickHandler={viewReport}
-                className="py-2 px-4 text-sm"
-              >
-                View Detailed Report
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {prediction?.results && <CalcTable prediction={prediction.results} />}
     </div>
   );
 }
