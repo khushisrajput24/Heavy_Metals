@@ -2,9 +2,7 @@ import axios from "axios";
 
 export const handleFileSelect = (event, setFile) => {
   const file = event.target.files?.[0];
-  if (file) {
-    setFile(file);
-  }
+  if (file) setFile(file);
 };
 
 export const handleBulkUpload = async (
@@ -17,60 +15,43 @@ export const handleBulkUpload = async (
   event.preventDefault();
 
   if (!file) {
-    setError("Please upload a file first!");
+    setError("Please upload a CSV file first!");
     setPrediction(null);
     return;
   }
 
   setLoading(true);
+  setError(null);
   setPrediction(null);
 
   try {
-    const reader = new FileReader();
+    const formData = new FormData();
+    formData.append("file", file);
 
-    reader.onload = async (e) => {
-      try {
-        const text = e.target.result;
+    const BASE_URL =
+      window.location.hostname === "localhost"
+        ? "http://127.0.0.1:8000"
+        : import.meta.env.VITE_API_URL;
 
-        // Parse CSV
-        const rows = text.split("\n").map((row) => row.split(","));
-        const header = rows[0].map((h) => h.trim().toLowerCase());
-        const values = rows[1];
+    const response = await axios.post(`${BASE_URL}/process_csv`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-        // Metals object
-        const metals = {
-          Pb: values[header.indexOf("pb")],
-          Cd: values[header.indexOf("cd")],
-          Cr: values[header.indexOf("cr")],
-          As: values[header.indexOf("as")],
-          Zn: values[header.indexOf("zn")],
-          Fe: values[header.indexOf("fe")],
-          Cu: values[header.indexOf("cu")],
-        };
+    console.log("API RESPONSE:", response.data);
 
-        // Auto URL selection
-        const BASE_URL =
-          window.location.hostname === "localhost"
-            ? "http://127.0.0.1:8000"
-            : import.meta.env.VITE_API_URL;
+    if (response.data.status !== "success") {
+      setError(response.data.message || "Backend error occurred.");
+      return;
+    }
 
-        const response = await axios.post(`${BASE_URL}/predict_bulk_hmpi`, {
-          data: metals,
-        });
-
-        setPrediction(response.data.prediction);
-      } catch (err) {
-        console.error(err);
-        setPrediction("Error processing file or backend failure");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    reader.readAsText(file);
+    // Show output from first row only
+    setPrediction(response.data.results[0].output);
   } catch (error) {
     console.error(error);
-    setPrediction("Unable to read file");
-    setLoading(false);
+    setError("Backend error or network failure.");
   }
+
+  setLoading(false);
 };

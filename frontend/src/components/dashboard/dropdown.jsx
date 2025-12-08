@@ -21,7 +21,7 @@ const Dropdown = () => {
         Methodology
       </NavLink>
 
-      <NavLink
+      {/* <NavLink
         to={"/user/analysis/"}
         className={({ isActive }) =>
           `${linkBaseClass} ${
@@ -33,7 +33,7 @@ const Dropdown = () => {
       >
         <CircleStar size={18} strokeWidth={1.8} />
         Suggestions
-      </NavLink>
+      </NavLink> */}
     </nav>
   );
 };

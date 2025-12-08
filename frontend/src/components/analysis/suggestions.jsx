@@ -4,7 +4,7 @@ import { CircleCheckBig, CircleStar, MonitorCheck, Target } from "lucide-react";
 import { Button } from "../ui/button.jsx";
 
 export const Suggestion = () => {
-  const { contaminant } = useParams(); // <-- Get dynamic contaminant from URL
+  const { contaminant } = useParams();
   const [data, setData] = useState(null);
   const [expandedGroups, setExpandedGroups] = useState({
     yellow: false,
@@ -83,11 +83,7 @@ export const Suggestion = () => {
 
             {data.immediate_actions.map((item, idx) => (
               <div key={idx} className="mt-3">
-                {item.citations.length === 0 && (
-                  <p className="text-sm text-gray-500">
-                    No research references available.
-                  </p>
-                )}
+                {item.citations.length === 0 && <></>}
 
                 {item.citations.map((c, i) => (
                   <div key={i} className="mt-2">

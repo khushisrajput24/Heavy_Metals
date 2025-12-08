@@ -22,6 +22,7 @@ export const SelectContam = () => {
           <option value="arsenic">Arsenic</option>
           <option value="cadmium">Cadmium</option>
           <option value="mercury">Mercury</option>
+          <option value="nickel">Nickel</option>
         </select>
         <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
           <ChevronDown size={20} color="black" />

@@ -559,13 +559,13 @@ export const COLORS = {
 };
 
 export const languages = [
-  "English",
-  "हिन्दी",
-  "മലയാളം",
-  "తెలుగు",
-  "ಕನ್ನಡ",
-  "اردو",
-  "ଓଡିଆ",
+  { label: "English", code: "en" },
+  { label: "हिन्दी", code: "hi" },
+  { label: "മലയാളം", code: "ml" },
+  { label: "తెలుగు", code: "te" },
+  { label: "ಕನ್ನಡ", code: "kn" },
+  { label: "اردو", code: "ur" },
+  { label: "ଓଡିଆ", code: "or" },
 ];
 
 export const notifications = [
