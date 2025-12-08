@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { FlaskConical, TestTubeDiagonal } from "lucide-react";
+import {
+  FlaskConical,
+  TestTubeDiagonal,
+  ChevronDown,
+  CircleCheckBig,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { handleManualSubmit } from "../../utils/functions/manualUpload";
 import { useViewReport } from "../../utils/functions/utility";
@@ -178,130 +183,6 @@ export default function ManualUpload() {
             <MetalInput id="zinc" label="Zinc (Zn)" limit="15000 µg/L" alimit="5000 µg/L"/>
             <MetalInput id="nickel" label="Nickel (Ni)" limit="20 µg/L" alimit="20 µg/L"/>
           </div>
-          
-        
-        </div>
-
-            {/* Repeat pattern for other metals */}
-            {/* cadmium */}
-            <div className="input-group">
-              <label htmlFor="cadmium">
-                Cadmium (Cd) <span className="limit">Limit: 5 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="cadmium"
-                placeholder="Enter value in µg/L"
-                value={formData.cadmium}
-                onChange={handleInputChange}
-              />
-              {errors.cadmium && (
-                <p className="text-red-500 text-xs mt-1">{errors.cadmium}</p>
-              )}
-            </div>
-
-            {/* mercury */}
-            <div className="input-group">
-              <label htmlFor="mercury">
-                Mercury (Hg) <span className="limit">Limit: 6 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="mercury"
-                placeholder="Enter value in µg/L"
-                value={formData.mercury}
-                onChange={handleInputChange}
-              />
-              {errors.mercury && (
-                <p className="text-red-500 text-xs mt-1">{errors.mercury}</p>
-              )}
-            </div>
-
-            {/* arsenic */}
-            <div className="input-group">
-              <label htmlFor="arsenic">
-                Arsenic (As) <span className="limit">Limit: 10 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="arsenic"
-                placeholder="Enter value in µg/L"
-                value={formData.arsenic}
-                onChange={handleInputChange}
-              />
-              {errors.arsenic && (
-                <p className="text-red-500 text-xs mt-1">{errors.arsenic}</p>
-              )}
-            </div>
-
-            {/* chromium */}
-            <div className="input-group">
-              <label htmlFor="chromium">
-                Chromium (Cr) <span className="limit">Limit: 50 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="chromium"
-                placeholder="Enter value in µg/L"
-                value={formData.chromium}
-                onChange={handleInputChange}
-              />
-              {errors.chromium && (
-                <p className="text-red-500 text-xs mt-1">{errors.chromium}</p>
-              )}
-            </div>
-
-            {/* copper */}
-            <div className="input-group">
-              <label htmlFor="copper">
-                Copper (Cu) <span className="limit">Limit: 2 mg/L</span>
-              </label>
-              <input
-                type="text"
-                id="copper"
-                placeholder="Enter value in mg/L"
-                value={formData.copper}
-                onChange={handleInputChange}
-              />
-              {errors.copper && (
-                <p className="text-red-500 text-xs mt-1">{errors.copper}</p>
-              )}
-            </div>
-
-            {/* zinc */}
-            <div className="input-group">
-              <label htmlFor="zinc">
-                Zinc (Zn) <span className="limit">Limit: 3 mg/L</span>
-              </label>
-              <input
-                type="text"
-                id="zinc"
-                placeholder="Enter value in mg/L"
-                value={formData.zinc}
-                onChange={handleInputChange}
-              />
-              {errors.zinc && (
-                <p className="text-red-500 text-xs mt-1">{errors.zinc}</p>
-              )}
-            </div>
-
-            {/* nickel */}
-            <div className="input-group">
-              <label htmlFor="nickel">
-                Nickel (Ni) <span className="limit">Limit: 70 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="nickel"
-                placeholder="Enter value in µg/L"
-                value={formData.nickel}
-                onChange={handleInputChange}
-              />
-              {errors.nickel && (
-                <p className="text-red-500 text-xs mt-1">{errors.nickel}</p>
-              )}
-            </div>
-          </div>
         </div>
 
         <div className="button-container">
@@ -310,7 +191,6 @@ export default function ManualUpload() {
           </button>
         </div>
       </form>
-
 
       {hmpi !== null && (
         <div className="center ">
@@ -331,54 +211,9 @@ export default function ManualUpload() {
               </li>
               {/* <li>CI: {prediction.CI}</li> */}
             </ul>
-            
           </div>
         </div>
       )}
-
-      <div
-  
->
- 
-
-  <div
-    className="standards-list"
-  > <h2
-    className="section-title"
-  >
-    Regulatory Standards
-  </h2>
-  <a
-      href="https://cpcb.nic.in/wqm/BIS_Drinking_Water_Specification.pdf"
-      target="_blank"
-      rel="noopener noreferrer"
-    className="standard-item"
-    >
-     <CircleCheckBig className="check-icon" />
-      <span>BIS 10500 (2012): Drinking water for Permissible and Acceptable limits</span>
-    </a>
-    <a
-      href="https://law.resource.org/pub/us/cfr/ibr/002/apha.method.3120.1992.pdf"
-      target="_blank"
-      rel="noopener noreferrer"
-    className="standard-item"
-    >
-     <CircleCheckBig className="check-icon" />
-      <span>APHA Method 3120: Standard Methods for the Examination of Water</span>
-    </a>
-
-    <a
-      href="https://cpcb.nic.in/displaypdf.php?id=bmFibC9ULTA2NDMuMTYuMThfQ2hlbV8yMi0xMC0xNi5wZGY%3D&utm_source=chatgpt.com"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="standard-item"
-    >
-      <CircleCheckBig className="check-icon" />
-      <span>Limit of Detection of groundwater as per NABL Standards</span>
-    </a>
-  </div>
-</div>
-
     </div>
   );
 }

@@ -166,7 +166,7 @@ import Summary from "../components/graphs/advanced/Summary.jsx";
 import Overview from "../components/graphs/advanced/Overview.jsx";
 import HandleExport from "../utils/declaration";
 import { SelectContam } from "../components/analysis/selectContam.jsx";
-import transformGraphData from "../utils/transformGraphData";
+
 
 export const Analysis = () => {
   const location = useLocation();
