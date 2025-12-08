@@ -1,12 +1,12 @@
 import "../App.css";
 import { KeyMetrics } from "../components/dashboard/key_metrics";
 import { StatusLegend } from "../components/dashboard/legend";
-import MapAndCharts from "../components/dashboard/map";
 import { DelhiHeatMap } from "../components/graphs/geoTag";
 import { RecentReports } from "../components/dashboard/recent_reports";
 import { SearchFilter } from "../components/dashboard/searchfilter";
 
 export const Dashboard = () => {
+   
   return (
     <div>
       {/* Main header and description */}
@@ -22,7 +22,9 @@ export const Dashboard = () => {
       <div className="flex flex-row space-x-4">
         <div className="flex w-[75%] flex-col space-y-1 mx-2">
           {/*Search bar and filters to be added here*/}
+          <div className="flex items-center space-x-2 mb-4">
           <SearchFilter />
+           </div>
           {/* Map and Charts to be added here */}
           <DelhiHeatMap />
         </div>
