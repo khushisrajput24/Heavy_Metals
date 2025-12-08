@@ -23,6 +23,15 @@ export const Reports = () => {
         </div>
       </div>
 
+      <div
+      style={{
+        marginLeft: "15px",
+      }}>
+        <Button type="main" colorVariant="secondary">
+            Add a Report
+        </Button>
+      </div>
+
       <div className="m-4" style={{ width: 400, padding: 2 }}>
         <SearchAutocomplete setSearch={setSearch} />{" "}
       </div>

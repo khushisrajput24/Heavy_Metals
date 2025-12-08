@@ -38,6 +38,16 @@ export default function APIUpload() {
         </div>
       </div>
 
+      <div className="requirements-card">
+        <h3>File Format Requirements:</h3>
+        <ul>
+          <li>First row should contain column headers</li>
+          <li>Include columns: sample_id, latitude, longitude, depth</li>
+          <li>Heavy metal columns: Pb, Cd, Hg, As, Cr, Cu, Zn, Ni</li>
+          <li>Use numeric values only for concentrations</li>
+        </ul>
+      </div>
+
       <div className="button-container">
         <button
           type="submit"
