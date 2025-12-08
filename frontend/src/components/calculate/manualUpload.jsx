@@ -50,7 +50,6 @@ export default function ManualUpload() {
 
   const viewReport = useViewReport();
 
-<<<<<<< HEAD
   const MetalInput = ({ id, label, limit, alimit }) => (
     <div className="input-group">
       <label htmlFor={id}>
@@ -91,8 +90,6 @@ export default function ManualUpload() {
     </div>
   );
 
-=======
->>>>>>> 100ed3ed4eb5a53704965b0d32ba8694fa81373e
   return (
     <div id="manual-entry-form" className="tab-content active">
       <form
@@ -176,7 +173,6 @@ export default function ManualUpload() {
             Enter the concentration values for each heavy metal detected
           </p>
           <div className="input-grid metal-grid">
-<<<<<<< HEAD
             <MetalInput id="lead" label="Lead (Pb)" limit="10 µg/L" alimit="10 µg/L"/>
             <MetalInput id="cadmium" label="Cadmium (Cd)" limit="3 µg/L" alimit="3 µg/L"/>
             <MetalInput id="mercury" label="Mercury (Hg)" limit="1 µg/L" alimit="1 µg/L"/>
@@ -189,23 +185,6 @@ export default function ManualUpload() {
           
         
         </div>
-=======
-            <div className="input-group">
-              <label htmlFor="lead">
-                Lead (Pb) <span className="limit">Limit: 10 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="lead"
-                placeholder="Enter value in µg/L"
-                value={formData.lead}
-                onChange={handleInputChange}
-              />
-              {errors.lead && (
-                <p className="text-red-500 text-xs mt-1">{errors.lead}</p>
-              )}
-            </div>
->>>>>>> 100ed3ed4eb5a53704965b0d32ba8694fa81373e
 
             {/* Repeat pattern for other metals */}
             {/* cadmium */}
@@ -336,7 +315,6 @@ export default function ManualUpload() {
         </div>
       </form>
 
-<<<<<<< HEAD
 
       {hmpi !== null && (
         <div className="center ">
@@ -405,23 +383,6 @@ export default function ManualUpload() {
   </div>
 </div>
 
-=======
-      {hmpi !== null && (
-        <div className="flex justify-between items-center gap-4 m-4">
-          <h3 className="text-lg font-bold text-[#225ca3] leading-none">
-            Calculated HMPI: {hmpi}
-          </h3>
-          <Button
-            type="main"
-            colorVariant="secondary"
-            onClickHandler={viewReport}
-            className="py-2 px-4 text-sm"
-          >
-            View Detailed Report
-          </Button>
-        </div>
-      )}
->>>>>>> 100ed3ed4eb5a53704965b0d32ba8694fa81373e
     </div>
   );
 }
