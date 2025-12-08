@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FlaskConical, TestTubeDiagonal } from "lucide-react";
+import { ChevronDown, CircleCheckBig, FlaskConical, TestTubeDiagonal } from "lucide-react";
 import { Button } from "../ui/button";
 import { handleManualSubmit } from "../../utils/functions/manualUpload";
 import { useViewReport } from "../../utils/functions/utility";
@@ -20,35 +20,85 @@ export default function ManualUpload() {
     nickel: "",
   });
 
-  const [errors, setErrors] = useState({}); // { fieldName: "error message" }
+  const unitOptions = ["µg/L", "mg/L", "ppm", "ppb"];
+
+  const [units, setUnits] = useState({
+    lead: "µg/L",
+    cadmium: "µg/L",
+    mercury: "µg/L",
+    arsenic: "µg/L",
+    chromium: "µg/L",
+    copper: "mg/L",
+    zinc: "mg/L",
+    nickel: "µg/L",
+  });
+
+  const [errors, setErrors] = useState({});
   const [hmpi, setHmpi] = useState(null);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-    // clear error while typing
+    setFormData((prev) => ({ ...prev, [id]: value }));
     setErrors((prev) => ({ ...prev, [id]: "" }));
+  };
+
+  const handleUnitChange = (e, metal) => {
+    setUnits((prev) => ({ ...prev, [metal]: e.target.value }));
   };
 
   const viewReport = useViewReport();
 
+  const MetalInput = ({ id, label, limit }) => (
+    <div className="input-group">
+      <label htmlFor={id}>
+        {label} <span className="limit">Limit: {limit}</span>
+      </label>
+
+      <div className="metal-input-wrapper">
+        <input
+          type="text"
+          id={id}
+          placeholder={`Enter value in ${units[id]}`}
+          value={formData[id]}
+          onChange={handleInputChange}
+        />
+
+        <div className="relative select-wrapper" style={{ width: 110 }}>
+          <select
+            className="custom-select"
+            value={units[id]}
+            onChange={(e) => handleUnitChange(e, id)}
+            aria-label={`${label} unit`}
+          >
+            {/* ensure value attributes present */}
+            <option value="ppm">ppm</option>
+            <option value="ppb">ppb</option>
+            <option value="mg/L">mg/L</option>
+            <option value="µg/L">µg/L</option>
+          </select>
+
+          <ChevronDown className="select-chevron" size={18} />
+        </div>
+      </div>
+
+      {errors[id] && (
+        <p className="text-red-500 text-xs mt-1">{errors[id]}</p>
+      )}
+    </div>
+  );
+
   return (
-    <div id="manual-entry-form" className="tab-content active">
+    <div id="manual-entry-form" className="w-[80%] items-center mx-auto mb-2">
       <form
         className="calculator-form"
         onSubmit={(e) => handleManualSubmit(e, formData, setHmpi, setErrors)}
       >
+        {/* SAMPLE INFO */}
         <div className="card-section">
           <h2 className="card-title">
-            <FlaskConical size={20} strokeWidth={2} />
-            Sample Information
+            <FlaskConical size={20} strokeWidth={2} /> Sample Information
           </h2>
-          <p className="card-subtitle">
-            Enter basic information about your groundwater sample
-          </p>
+
           <div className="input-grid">
             <div className="input-group">
               <label htmlFor="sampleId">Sample ID</label>
@@ -59,9 +109,6 @@ export default function ManualUpload() {
                 value={formData.sampleId}
                 onChange={handleInputChange}
               />
-              {errors.sampleId && (
-                <p className="text-red-500 text-xs mt-1">{errors.sampleId}</p>
-              )}
             </div>
 
             <div className="input-group">
@@ -73,9 +120,6 @@ export default function ManualUpload() {
                 value={formData.depth}
                 onChange={handleInputChange}
               />
-              {errors.depth && (
-                <p className="text-red-500 text-xs mt-1">{errors.depth}</p>
-              )}
             </div>
 
             <div className="input-group">
@@ -87,9 +131,6 @@ export default function ManualUpload() {
                 value={formData.latitude}
                 onChange={handleInputChange}
               />
-              {errors.latitude && (
-                <p className="text-red-500 text-xs mt-1">{errors.latitude}</p>
-              )}
             </div>
 
             <div className="input-group">
@@ -101,158 +142,62 @@ export default function ManualUpload() {
                 value={formData.longitude}
                 onChange={handleInputChange}
               />
-              {errors.longitude && (
-                <p className="text-red-500 text-xs mt-1">{errors.longitude}</p>
-              )}
             </div>
           </div>
         </div>
 
-        {/* metals */}
+        {/* HEAVY METALS */}
         <div className="card-section">
           <h2 className="card-title">
-            <TestTubeDiagonal size={20} strokeWidth={2} />
-            Heavy Metal Concentrations
+            <TestTubeDiagonal size={20} strokeWidth={2} /> Heavy Metal Concentrations
           </h2>
-          <p className="card-subtitle">
-            Enter the concentration values for each heavy metal detected
-          </p>
+
           <div className="input-grid metal-grid">
-            <div className="input-group">
-              <label htmlFor="lead">
-                Lead (Pb) <span className="limit">Limit: 10 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="lead"
-                placeholder="Enter value in µg/L"
-                value={formData.lead}
-                onChange={handleInputChange}
-              />
-              {errors.lead && (
-                <p className="text-red-500 text-xs mt-1">{errors.lead}</p>
-              )}
-            </div>
+            <MetalInput id="lead" label="Lead (Pb)" limit="10 µg/L" />
+            <MetalInput id="cadmium" label="Cadmium (Cd)" limit="5 µg/L" />
+            <MetalInput id="mercury" label="Mercury (Hg)" limit="6 µg/L" />
+            <MetalInput id="arsenic" label="Arsenic (As)" limit="10 µg/L" />
+            <MetalInput id="chromium" label="Chromium (Cr)" limit="50 µg/L" />
+            <MetalInput id="copper" label="Copper (Cu)" limit="2 mg/L" />
+            <MetalInput id="zinc" label="Zinc (Zn)" limit="3 mg/L" />
+            <MetalInput id="nickel" label="Nickel (Ni)" limit="70 µg/L" />
+          </div>
+        </div>
 
-            {/* Repeat pattern for other metals */}
-            {/* cadmium */}
-            <div className="input-group">
-              <label htmlFor="cadmium">
-                Cadmium (Cd) <span className="limit">Limit: 5 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="cadmium"
-                placeholder="Enter value in µg/L"
-                value={formData.cadmium}
-                onChange={handleInputChange}
-              />
-              {errors.cadmium && (
-                <p className="text-red-500 text-xs mt-1">{errors.cadmium}</p>
-              )}
-            </div>
+        {/* ====== Unit Conversion Box: place before the Calculate button ====== */}
+        <div className="unit-conversion-box">
+          <h3>Unit Conversion Reference</h3>
 
-            {/* mercury */}
-            <div className="input-group">
-              <label htmlFor="mercury">
-                Mercury (Hg) <span className="limit">Limit: 6 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="mercury"
-                placeholder="Enter value in µg/L"
-                value={formData.mercury}
-                onChange={handleInputChange}
-              />
-              {errors.mercury && (
-                <p className="text-red-500 text-xs mt-1">{errors.mercury}</p>
-              )}
-            </div>
+          <div className="unit-grid" style={{ marginTop: 8 }}>
+            <div className="cell header"></div>
+            <div className="cell header">ppm</div>
+            <div className="cell header">ppb</div>
+            <div className="cell header">mg/L</div>
+            <div className="cell header">µg/L</div>
 
-            {/* arsenic */}
-            <div className="input-group">
-              <label htmlFor="arsenic">
-                Arsenic (As) <span className="limit">Limit: 10 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="arsenic"
-                placeholder="Enter value in µg/L"
-                value={formData.arsenic}
-                onChange={handleInputChange}
-              />
-              {errors.arsenic && (
-                <p className="text-red-500 text-xs mt-1">{errors.arsenic}</p>
-              )}
-            </div>
+            <div className="cell row-header">ppm</div>
+            <div className="cell">1</div>
+            <div className="cell">1000</div>
+            <div className="cell">1</div>
+            <div className="cell">1000</div>
 
-            {/* chromium */}
-            <div className="input-group">
-              <label htmlFor="chromium">
-                Chromium (Cr) <span className="limit">Limit: 50 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="chromium"
-                placeholder="Enter value in µg/L"
-                value={formData.chromium}
-                onChange={handleInputChange}
-              />
-              {errors.chromium && (
-                <p className="text-red-500 text-xs mt-1">{errors.chromium}</p>
-              )}
-            </div>
+            <div className="cell row-header">ppb</div>
+            <div className="cell">0.001</div>
+            <div className="cell">1</div>
+            <div className="cell">0.001</div>
+            <div className="cell">1</div>
 
-            {/* copper */}
-            <div className="input-group">
-              <label htmlFor="copper">
-                Copper (Cu) <span className="limit">Limit: 2 mg/L</span>
-              </label>
-              <input
-                type="text"
-                id="copper"
-                placeholder="Enter value in mg/L"
-                value={formData.copper}
-                onChange={handleInputChange}
-              />
-              {errors.copper && (
-                <p className="text-red-500 text-xs mt-1">{errors.copper}</p>
-              )}
-            </div>
+            <div className="cell row-header">mg/L</div>
+            <div className="cell">1</div>
+            <div className="cell">1000</div>
+            <div className="cell">1</div>
+            <div className="cell">1000</div>
 
-            {/* zinc */}
-            <div className="input-group">
-              <label htmlFor="zinc">
-                Zinc (Zn) <span className="limit">Limit: 3 mg/L</span>
-              </label>
-              <input
-                type="text"
-                id="zinc"
-                placeholder="Enter value in mg/L"
-                value={formData.zinc}
-                onChange={handleInputChange}
-              />
-              {errors.zinc && (
-                <p className="text-red-500 text-xs mt-1">{errors.zinc}</p>
-              )}
-            </div>
-
-            {/* nickel */}
-            <div className="input-group">
-              <label htmlFor="nickel">
-                Nickel (Ni) <span className="limit">Limit: 70 µg/L</span>
-              </label>
-              <input
-                type="text"
-                id="nickel"
-                placeholder="Enter value in µg/L"
-                value={formData.nickel}
-                onChange={handleInputChange}
-              />
-              {errors.nickel && (
-                <p className="text-red-500 text-xs mt-1">{errors.nickel}</p>
-              )}
-            </div>
+            <div className="cell row-header">µg/L</div>
+            <div className="cell">0.001</div>
+            <div className="cell">1</div>
+            <div className="cell">0.001</div>
+            <div className="cell">1</div>
           </div>
         </div>
 
@@ -262,6 +207,80 @@ export default function ManualUpload() {
           </button>
         </div>
       </form>
+
+ <div
+  style={{
+    background: "transparent",
+    border: "none",
+    boxShadow: "none",
+    padding: "0",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+  }}
+>
+  <h2
+    style={{
+      fontSize: "1.4rem",
+      fontWeight: "600",
+      color: "#1e40af",
+      marginBottom: "10px",
+      marginTop: "25px",
+    }}
+  >
+    Regulatory Standards
+  </h2>
+
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "16px",
+    }}
+  >
+    <a
+      href="https://www.bis.gov.in/?lang=hi"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
+        textDecoration: "none",
+        color: "#111827",
+        fontWeight: "500",
+        fontSize: "1.05rem",
+      }}
+    >
+      <CircleCheckBig color="#16a34a" size={18} />
+      <span>Permissable limit as per BIS</span>
+    </a>
+
+    <a
+      href="https://cpcb.nic.in/displaypdf.php?id=bmFibC9ULTA2NDMuMTYuMThfQ2hlbV8yMi0xMC0xNi5wZGY%3D&utm_source=chatgpt.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        marginLeft: "90px",
+        marginBottom: "30px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
+        textDecoration: "none",
+        color: "#111827",
+        fontWeight: "500",
+        fontSize: "1.05rem",
+      }}
+    >
+      <CircleCheckBig color="#16a34a" size={18} />
+      <span>Acceptable limit as per NABL Standards</span>
+    </a>
+  </div>
+</div>
 
       {hmpi !== null && (
         <div className="flex justify-between items-center gap-4 m-4">
