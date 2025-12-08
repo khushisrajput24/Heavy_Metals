@@ -3,7 +3,7 @@ import { ChevronDown, CircleCheckBig, FlaskConical, TestTubeDiagonal } from "luc
 import { Button } from "../ui/button";
 import { handleManualSubmit } from "../../utils/functions/manualUpload";
 import { useViewReport } from "../../utils/functions/utility";
-
+import "../ui/css/about_us.css";
 export default function ManualUpload() {
   const [formData, setFormData] = useState({
     sampleId: "",
@@ -20,16 +20,14 @@ export default function ManualUpload() {
     nickel: "",
   });
 
-  const unitOptions = ["µg/L", "mg/L", "ppm", "ppb"];
-
   const [units, setUnits] = useState({
     lead: "µg/L",
     cadmium: "µg/L",
     mercury: "µg/L",
     arsenic: "µg/L",
     chromium: "µg/L",
-    copper: "mg/L",
-    zinc: "mg/L",
+    copper: "µg/L",
+    zinc: "µg/L",
     nickel: "µg/L",
   });
 
@@ -48,12 +46,13 @@ export default function ManualUpload() {
 
   const viewReport = useViewReport();
 
-  const MetalInput = ({ id, label, limit }) => (
+  const MetalInput = ({ id, label, limit, alimit }) => (
     <div className="input-group">
       <label htmlFor={id}>
-        {label} <span className="limit">Limit: {limit}</span>
+        {label} 
       </label>
-
+      <span className="limit">Permissible Limit: {limit}</span>
+      <span className="limit">Acceptable Limit: {alimit}</span>
       <div className="metal-input-wrapper">
         <input
           type="text"
@@ -63,7 +62,7 @@ export default function ManualUpload() {
           onChange={handleInputChange}
         />
 
-        <div className="relative select-wrapper" style={{ width: 110 }}>
+        <div className="relative select-wrapper" style={{ width: 110, height: 36 }}>
           <select
             className="custom-select"
             value={units[id]}
@@ -153,15 +152,17 @@ export default function ManualUpload() {
           </h2>
 
           <div className="input-grid metal-grid">
-            <MetalInput id="lead" label="Lead (Pb)" limit="10 µg/L" />
-            <MetalInput id="cadmium" label="Cadmium (Cd)" limit="5 µg/L" />
-            <MetalInput id="mercury" label="Mercury (Hg)" limit="6 µg/L" />
-            <MetalInput id="arsenic" label="Arsenic (As)" limit="10 µg/L" />
-            <MetalInput id="chromium" label="Chromium (Cr)" limit="50 µg/L" />
-            <MetalInput id="copper" label="Copper (Cu)" limit="2 mg/L" />
-            <MetalInput id="zinc" label="Zinc (Zn)" limit="3 mg/L" />
-            <MetalInput id="nickel" label="Nickel (Ni)" limit="70 µg/L" />
+            <MetalInput id="lead" label="Lead (Pb)" limit="10 µg/L" alimit="10 µg/L"/>
+            <MetalInput id="cadmium" label="Cadmium (Cd)" limit="3 µg/L" alimit="3 µg/L"/>
+            <MetalInput id="mercury" label="Mercury (Hg)" limit="1 µg/L" alimit="1 µg/L"/>
+            <MetalInput id="arsenic" label="Arsenic (As)" limit="50 µg/L" alimit="10 µg/L"/>
+            <MetalInput id="chromium" label="Chromium (Cr)" limit="50 µg/L" alimit="50 µg/L"/>
+            <MetalInput id="copper" label="Copper (Cu)" limit="1500 µg/L" alimit="50 µg/L"/>
+            <MetalInput id="zinc" label="Zinc (Zn)" limit="15000 µg/L" alimit="5000 µg/L"/>
+            <MetalInput id="nickel" label="Nickel (Ni)" limit="20 µg/L" alimit="20 µg/L"/>
           </div>
+          
+        
         </div>
 
         {/* ====== Unit Conversion Box: place before the Calculate button ====== */}
@@ -208,95 +209,74 @@ export default function ManualUpload() {
         </div>
       </form>
 
- <div
-  style={{
-    background: "transparent",
-    border: "none",
-    boxShadow: "none",
-    padding: "0",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    textAlign: "center",
-  }}
+
+      {hmpi !== null && (
+        <div className="center ">
+         <div>
+            <h3 className="calculated-title">Calculated Values:</h3>
+            <ul className="calculated-list">
+              <li>
+                <b>HPI:</b> {hmpi.hpi.toFixed(4)}
+              </li>
+              <li>
+                <b>HEI:</b> {hmpi.hei.toFixed(4)}
+              </li>
+              <li>
+                <b>Cd:</b> {hmpi.cd.toFixed(4)}
+              </li>
+              <li>
+                <b>MI:</b> {hmpi.mi.toFixed(4)}
+              </li>
+              {/* <li>CI: {prediction.CI}</li> */}
+            </ul>
+            
+          </div>
+        </div>
+      )}
+
+      <div
+  
 >
-  <h2
-    style={{
-      fontSize: "1.4rem",
-      fontWeight: "600",
-      color: "#1e40af",
-      marginBottom: "10px",
-      marginTop: "25px",
-    }}
+ 
+
+  <div
+    className="standards-list"
+  > <h2
+    className="section-title"
   >
     Regulatory Standards
   </h2>
-
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "16px",
-    }}
-  >
-    <a
-      href="https://www.bis.gov.in/?lang=hi"
+  <a
+      href="https://cpcb.nic.in/wqm/BIS_Drinking_Water_Specification.pdf"
       target="_blank"
       rel="noopener noreferrer"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "10px",
-        textDecoration: "none",
-        color: "#111827",
-        fontWeight: "500",
-        fontSize: "1.05rem",
-      }}
+    className="standard-item"
     >
-      <CircleCheckBig color="#16a34a" size={18} />
-      <span>Permissable limit as per BIS</span>
+     <CircleCheckBig className="check-icon" />
+      <span>BIS 10500 (2012): Drinking water for Permissible and Acceptable limits</span>
+    </a>
+    <a
+      href="https://law.resource.org/pub/us/cfr/ibr/002/apha.method.3120.1992.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+    className="standard-item"
+    >
+     <CircleCheckBig className="check-icon" />
+      <span>APHA Method 3120: Standard Methods for the Examination of Water</span>
     </a>
 
     <a
       href="https://cpcb.nic.in/displaypdf.php?id=bmFibC9ULTA2NDMuMTYuMThfQ2hlbV8yMi0xMC0xNi5wZGY%3D&utm_source=chatgpt.com"
       target="_blank"
       rel="noopener noreferrer"
-      style={{
-        marginLeft: "90px",
-        marginBottom: "30px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "10px",
-        textDecoration: "none",
-        color: "#111827",
-        fontWeight: "500",
-        fontSize: "1.05rem",
-      }}
+      className="standard-item"
     >
-      <CircleCheckBig color="#16a34a" size={18} />
-      <span>Acceptable limit as per NABL Standards</span>
+      <CircleCheckBig className="check-icon" />
+      <span>Limit of Detection of groundwater as per NABL Standards</span>
     </a>
   </div>
 </div>
 
-      {hmpi !== null && (
-        <div className="flex justify-between items-center gap-4 m-4">
-          <h3 className="text-lg font-bold text-[#225ca3] leading-none">
-            Calculated HMPI: {hmpi}
-          </h3>
-          <Button
-            type="main"
-            colorVariant="secondary"
-            onClickHandler={viewReport}
-            className="py-2 px-4 text-sm"
-          >
-            View Detailed Report
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

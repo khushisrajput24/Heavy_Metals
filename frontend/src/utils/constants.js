@@ -576,13 +576,24 @@ export const notifications = [
   "Weekly Summaries",
 ];
 
-export const permissible_limits = {
-  "Lead (Pb)": 10, // µg/L
-  "Cadmium (Cd)": 5, // µg/L
-  "Mercury (Hg)": 6, // µg/L
-  "Arsenic (As)": 10, // µg/L
-  "Chromium (Cr)": 50, // µg/L
-  "Copper (Cu)": 2, // mg/L
-  "Zinc (Zn)": 3, // mg/L
-  "Nickel (Ni)": 70, // µg/L
+export const permissibleLimitsUgPerL = {
+  "Lead (Pb)": 5000,    // 10 µg/L
+  "Cadmium (Cd)": 2000,
+  "Mercury (Hg)": 5,
+  "Arsenic (As)": 2000,
+  "Chromium (Cr)": 1500,
+  "Copper (Cu)": 2000, // 2 mg/L = 2000 µg/L
+  "Zinc (Zn)": 5000,   // 3 mg/L = 3000 µg/L
+  "Nickel (Ni)": 5000,
+};
+
+export const LODinUgPerL = {
+ "Lead (Pb)": 10,  
+  "Cadmium (Cd)": 10,
+  "Mercury (Hg)": 1,
+  "Arsenic (As)": 10,
+  "Chromium (Cr)": 10,
+  "Copper (Cu)": 10,
+  "Zinc (Zn)": 10,   
+  "Nickel (Ni)": 10,
 };
