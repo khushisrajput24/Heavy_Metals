@@ -77,20 +77,40 @@ export default function BulkUpload() {
         </button>
       </div>
 
-      {prediction !== null && (
-        <div className="flex justify-between items-center gap-4 m-4">
-          <h3 className="text-lg font-bold text-[#225ca3] leading-none">
-            Calculated HMPI: {prediction}
-          </h3>
+      {prediction && (
+        <div className="center">
+          <div>
+            <h3 className="calculated-title">Calculated Values:</h3>
+            <ul className="calculated-list">
+              <li>
+                <b>HPI:</b> {prediction.HMPI_formula.toFixed(4)}
+              </li>
+              <li>
+                <b>HEI:</b> {prediction.HEI.toFixed(4)}
+              </li>
+              <li>
+                <b>Cd:</b> {prediction.Cd_excess.toFixed(4)}
+              </li>
+              <li>
+                <b>MI:</b> {prediction.MI.toFixed(4)}
+              </li>
+              {/* <li>CI: {prediction.CI}</li> */}
+            </ul>
+            <div className="flex justify-between items-center gap-4 m-4">
+              <h3 className="text-lg font-bold text-[#225ca3] leading-none">
+                Report Analysis Ready
+              </h3>
 
-          <Button
-            type="main"
-            colorVariant="secondary"
-            onClickHandler={viewReport}
-            className="py-2 px-4 text-sm"
-          >
-            View Detailed Report
-          </Button>
+              <Button
+                type="main"
+                colorVariant="secondary"
+                onClickHandler={viewReport}
+                className="py-2 px-4 text-sm"
+              >
+                View Detailed Report
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

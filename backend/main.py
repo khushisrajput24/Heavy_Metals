@@ -1,10 +1,14 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Body
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from controllers.hmpiCalc import predict_api_hmpi as predict_api_hmpi_impl
+from controllers.bulk import (
+    predict_bulk_json,
+    predict_bulk_csv
+)
 from controllers.suggestionsController import suggestionRouter as suggestions_router
 
 app = FastAPI(title="HMPI Backend")
@@ -25,10 +29,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API HMPI PREDICTION ROUTE
-@app.post("/predict_api_hmpi")
-async def predict_api_hmpi(payload: dict):
-    return predict_api_hmpi_impl(payload)
+# Bulk Prediction Routes
+@app.post("/predict_bulk_json")
+async def predict_bulk_json_route(payload: dict = Body(...)):
+    try:
+        metals = {
+            "Cr": payload.get("Cr"),
+            "Fe": payload.get("Fe"),
+            "Cu": payload.get("Cu"),
+            "Zn": payload.get("Zn"),
+            "As": payload.get("As"),
+            "Pb": payload.get("Pb"),
+        }
+
+        return predict_bulk_json(metals)
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.post("/predict_bulk_csv")
+async def predict_bulk_csv_route(file: UploadFile = File(...)):
+    return predict_bulk_csv(file)
 
 # Suggestions Router
 app.include_router(suggestions_router, tags=["suggestions"])

@@ -2,9 +2,7 @@ import axios from "axios";
 
 export const handleFileSelect = (event, setFile) => {
   const file = event.target.files?.[0];
-  if (file) {
-    setFile(file);
-  }
+  if (file) setFile(file);
 };
 
 export const handleBulkUpload = async (
@@ -29,39 +27,83 @@ export const handleBulkUpload = async (
     const reader = new FileReader();
 
     reader.onload = async (e) => {
-      try {
-        const text = e.target.result;
+      console.log("ONLOAD START"); // LOG 1
 
-        // Parse CSV
+      try {
+        const text = e.target.result.replace(/\r/g, "");
         const rows = text.split("\n").map((row) => row.split(","));
-        const header = rows[0].map((h) => h.trim().toLowerCase());
+        console.log("ROWS:", rows); // LOG 2
+
+        const rawHeader = rows[0];
         const values = rows[1];
 
-        // Metals object
-        const metals = {
-          Pb: values[header.indexOf("pb")],
-          Cd: values[header.indexOf("cd")],
-          Cr: values[header.indexOf("cr")],
-          As: values[header.indexOf("as")],
-          Zn: values[header.indexOf("zn")],
-          Fe: values[header.indexOf("fe")],
-          Cu: values[header.indexOf("cu")],
+        const normalizedHeader = rawHeader.map((h) =>
+          h
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z]/g, "")
+        );
+
+        const synonyms = { fe: ["iron"] };
+        const expectedMetals = ["pb", "cr", "as", "zn", "fe", "cu"];
+
+        const findColumn = (metal) => {
+          const clean = metal.toLowerCase();
+          for (let i = 0; i < normalizedHeader.length; i++) {
+            if (normalizedHeader[i].includes(clean)) return i;
+          }
+          if (synonyms[clean]) {
+            for (let s of synonyms[clean]) {
+              const sClean = s.toLowerCase().replace(/[^a-z]/g, "");
+              for (let i = 0; i < normalizedHeader.length; i++) {
+                if (normalizedHeader[i].includes(sClean)) return i;
+              }
+            }
+          }
+          return -1;
         };
 
-        // Auto URL selection
+        const metals = {};
+        expectedMetals.forEach((metal) => {
+          const idx = findColumn(metal);
+          const backendMap = {
+            pb: "Pb",
+            cr: "Cr",
+            as: "As",
+            zn: "Zn",
+            fe: "Fe",
+            cu: "Cu",
+          };
+
+          metals[backendMap[metal]] = values[idx];
+        });
+        console.log("METALS READY:", metals); // LOG 3
+
+        for (let key in metals) {
+          if (metals[key] === undefined) {
+            setError(`Column for ${key} was not found.`);
+            setLoading(false);
+            return;
+          }
+        }
+
         const BASE_URL =
           window.location.hostname === "localhost"
             ? "http://127.0.0.1:8000"
             : import.meta.env.VITE_API_URL;
 
-        const response = await axios.post(`${BASE_URL}/predict_bulk_hmpi`, {
-          data: metals,
-        });
+        console.log("SENDING TO API:", metals); // LOG 4
+        const response = await axios.post(
+          `${BASE_URL}/predict_bulk_json`,
+          metals
+        );
 
-        setPrediction(response.data.prediction);
+        console.log("RESPONSE RECEIVED:", response.data); // OPTIONAL LOG
+
+        setPrediction(response.data.result);
       } catch (err) {
         console.error(err);
-        setPrediction("Error processing file or backend failure");
+        setError("Error processing file or backend failure.");
       } finally {
         setLoading(false);
       }
@@ -70,7 +112,7 @@ export const handleBulkUpload = async (
     reader.readAsText(file);
   } catch (error) {
     console.error(error);
-    setPrediction("Unable to read file");
+    setError("Unable to read file");
     setLoading(false);
   }
 };
