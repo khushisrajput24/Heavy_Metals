@@ -20,7 +20,6 @@ export default function ManualUpload() {
     nickel: "",
   });
 
-<<<<<<< HEAD
   const [units, setUnits] = useState({
     lead: "µg/L",
     cadmium: "µg/L",
@@ -33,9 +32,6 @@ export default function ManualUpload() {
   });
 
   const [errors, setErrors] = useState({});
-=======
-  const [errors, setErrors] = useState({}); // { fieldName: "error message" }
->>>>>>> 100ed3ed4eb5a53704965b0d32ba8694fa81373e
   const [hmpi, setHmpi] = useState(null);
 
   const handleInputChange = (e) => {
