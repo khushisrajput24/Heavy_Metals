@@ -1,19 +1,17 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 import pandas as pd
 import joblib
 import numpy as np
 import io
 import os
+import sys
 
+# Import pickle classes
 from controllers.bulk import HMPIModel, FinalHMPIModel
-
-# FASTAPI APP SETUP
 
 app = FastAPI(title="HMPI Backend")
 
-# CORS
 FRONTEND_URL = os.getenv("CORS_ORIGIN")
 
 app.add_middleware(
@@ -21,38 +19,34 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        FRONTEND_URL,  # deployed frontend from .env
+        FRONTEND_URL
     ],
-    allow_origin_regex="https?://.*",   # fallback for production
+    allow_origin_regex="https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-import sys
+# Register classes so pickle can load correctly
 sys.modules['__main__'].HMPIModel = HMPIModel
 sys.modules['__main__'].FinalHMPIModel = FinalHMPIModel
 
 # LOAD PKL MODEL
-model = joblib.load("models/bulk_upload.pkl")
-metal_cols = model.metal_cols   # metals required by the model
 
-# CSV FILE UPLOAD + PROCESSING
+MODEL_PATH = "models/bulk_upload.pkl"
+model = joblib.load(MODEL_PATH)
+metal_cols = model.metal_cols
+print("PKL Loaded. Metals:", metal_cols)
+
+
+# CSV UPLOAD + PROCESSING
+
 @app.post("/process_csv")
 async def process_csv(file: UploadFile = File(...)):
-    import io
-
-    # ===============================
-    # 1. Load CSV Into DataFrame
-    # ===============================
     content = await file.read()
     df = pd.read_csv(io.BytesIO(content))
 
-    # ===============================
-    # 2. APPLY SAME ML CLEANING LOGIC
-    # ===============================
-
-    # ---- COLUMN MAP (From your ML code) ----
+    # 1. CLEANING (same as training)
     COLUMN_MAP = {
         "Cr (PPM)": "Cr",
         "Mn (PPM)": "Mn",
@@ -61,21 +55,21 @@ async def process_csv(file: UploadFile = File(...)):
         "Cu (PPM)": "Cu",
         "Zn (PPM)": "Zn",
         "As (PPM)": "As",
-        "Pb (PPB)": "Pb"   # Pb needs unit conversion
+        "Pb (PPB)": "Pb"
     }
 
     df = df.rename(columns=COLUMN_MAP)
 
-    # ---- Convert all metals to numeric ----
+    # Convert metals to numeric
     for col in COLUMN_MAP.values():
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # ---- Pb: convert PPB → mg/L ----
+    # Convert Pb PPB → mg/L
     if "Pb" in df.columns:
         df["Pb"] = df["Pb"] / 1000.0
 
-    # ---- BDL replacement using your exact values ----
+    # Apply BDL Limits
     BDL_LIMITS = {
         "As": 0.001,
         "Cd": 0.0001,
@@ -90,45 +84,55 @@ async def process_csv(file: UploadFile = File(...)):
 
     for metal, bdl in BDL_LIMITS.items():
         if metal in df.columns:
-            df[metal] = df[metal].replace(["BDL", "BDL ", 0, None, "0"], bdl / 2)
+            df[metal] = df[metal].replace(["BDL", "BDL ", "0", 0, None], bdl / 2)
             df[metal] = pd.to_numeric(df[metal], errors="coerce").fillna(bdl / 2)
 
-    # ===============================
-    # 3. VERIFY REQUIRED METALS
-    # ===============================
-    missing = [m for m in model.metal_cols if m not in df.columns]
+    # 2. VERIFY REQUIRED METALS
+    missing = [m for m in metal_cols if m not in df.columns]
     if missing:
         return {
             "status": "error",
-            "message": f"CSV missing required metal columns after cleaning: {missing}"
+            "message": f"Missing required metal columns in CSV: {missing}"
         }
 
-    # ===============================
-    # 4. PROCESS EACH ROW WITH PKL MODEL
-    # ===============================
-    output_rows = []
+    # 3. PROCESS EACH ROW WITH PKL MODEL
+    final_output = []
 
     for idx, row in df.iterrows():
+        # input metals for PKL
+        metal_input = {m: float(row[m]) for m in metal_cols}
 
-        metal_input = {m: float(row[m]) for m in model.metal_cols}
-
+        # run PKL model prediction
         result = model.predict_from_row(metal_input)
 
-        output_rows.append({
-            "row_index": idx,
-            "location": row.get("Location", f"Row {idx+1}"),
-            "input_metals": metal_input,
-            "output": result
+        # merge full row
+        merged_row = {}
+
+        # original dataset row
+        for col in df.columns:
+            merged_row[col] = (row[col] 
+                               if pd.notna(row[col]) 
+                               else None)
+
+        # append ML + formula outputs
+        merged_row.update({
+            "HPI": result["HMPI_formula"],
+            "HEI": result["HEI"],
+            "MI": result["MI"],
+            "CI": result["CI"],
+            "Category": result["Category"]
         })
 
+        final_output.append(merged_row)
+
+    # 4. RETURN ALL ROWS + RESULT
     return {
         "status": "success",
-        "total_rows": len(output_rows),
-        "results": output_rows
+        "total_rows": len(final_output),
+        "results": final_output
     }
 
 
-# ROOT ENDPOINT
 @app.get("/")
 def home():
-    return {"message": "HMPI Backend Running!"}
+    return {"message": "HMPI Backend Running Successfully!"}

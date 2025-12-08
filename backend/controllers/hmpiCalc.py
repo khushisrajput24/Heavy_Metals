@@ -1,79 +1,139 @@
+from fastapi import HTTPException
+from pydantic import BaseModel
+import joblib
 import pandas as pd
-from fastapi import File, UploadFile
-from io import BytesIO
-import pickle
-import os
+import base64
+import json
+import io
+from threading import Lock
 
-# load models here so controllers are self-contained
-MODEL_DIR = "models"
-api_model = None
-bulk_model = None
+# --- REQUIRED PATCH FOR OLD SKLEARN PICKLES ---
+import sklearn.compose._column_transformer as ct
+import sys
 
-api_path = os.path.join(MODEL_DIR, "hmpi_api_basic.pkl")
-# bulk_path = os.path.join(MODEL_DIR, "hmpi_bulk.pkl")  # optional
+class _RemainderColsList(list):
+    pass
 
-if os.path.exists(api_path):
-    with open(api_path, "rb") as f:
-        api_model = pickle.load(f)
+# Register in sklearn module
+setattr(ct, "_RemainderColsList", _RemainderColsList)
 
-# if os.path.exists(bulk_path):
-    # with open(bulk_path, "rb") as f:
-    #     bulk_model = pickle.load(f)
+# ALSO register in __main__ because the pickle references it!
+sys.modules['__main__']._RemainderColsList = _RemainderColsList
 
+# FIXED MODEL PATHS
+MODEL_PATH = "models/model_fixed.pkl"
+PREPROCESSOR_PATH = "models/preprocessor_fixed.pkl"
 
-# API HMPI PREDICTION
-def predict_api_hmpi(payload: dict):
-    api_key = payload.get("api_key")
+# Lazy-loaded variables
+model = None
+preprocessor = None
+load_lock = Lock()
 
-    # Replace later with real inputs
-    metals = {
-        "Pb": 1.2,
-        "Cd": 0.3,
-        "Cr": 2.1,
-        "As": 0.8,
-        "Zn": 3.5,
-        "Fe": 10.2,
-        "Cu": 0.6,
-    }
+def load_models():
+    global model, preprocessor
+    if model is None or preprocessor is None:
+        with load_lock:
+            if model is None:
+                model = joblib.load(MODEL_PATH)
+            if preprocessor is None:
+                preprocessor = joblib.load(PREPROCESSOR_PATH)
 
-    features = [
-        metals["Pb"], metals["Cd"], metals["Cr"],
-        metals["As"], metals["Zn"], metals["Fe"],
-        metals["Cu"]
-    ]
+# HMPI LOGIC
+STANDARD_LIMITS = {
+    "Pb": 0.01,
+    "Cd": 0.003,
+    "Cr": 0.05,
+    "As": 0.01,
+    "Zn": 3.0,
+    "Fe": 0.3,
+    "Cu": 2.0,
+}
 
-    prediction = api_model.predict([features])[0]
+def calculate_hmpi(metals):
+    HEI = Cd_excess = MI = CI = 0
+
+    for metal, limit in STANDARD_LIMITS.items():
+        val = metals.get(metal)
+        if val is None:
+            continue
+
+        val = float(val)
+        Ci = val / limit
+        HEI += Ci
+        CI += Ci
+
+        if val > limit:
+            MI += Ci
+            Cd_excess += (val - limit)
+
+    HMPI = CI
+    return HMPI, HEI, Cd_excess, MI, CI
+
+def classify_pollution(hmpi):
+    if hmpi < 10:
+        return "Safe", "Low Risk"
+    elif hmpi < 20:
+        return "Moderate Pollution", "Medium Risk"
+    return "High Pollution", "High Risk"
+
+class APIKeyInput(BaseModel):
+    api_key: str
+
+def extract_metals_from_key(api_key: str):
+    try:
+        decoded_bytes = base64.b64decode(api_key)
+        decoded_text = decoded_bytes.decode("utf-8")
+    except:
+        raise HTTPException(status_code=400, detail="Invalid Base64 API Key")
+
+    # Try JSON
+    try:
+        return json.loads(decoded_text)
+    except:
+        pass
+
+    # Try CSV
+    try:
+        df = pd.read_csv(io.StringIO(decoded_text))
+        if set(STANDARD_LIMITS.keys()).issubset(df.columns):
+            return df.iloc[0].to_dict()
+    except:
+        pass
+
+    raise HTTPException(
+        status_code=400,
+        detail="API Key does not contain valid JSON or CSV with metal values."
+    )
+
+def predict_from_api_key(data: APIKeyInput):
+
+    # Load models only when needed
+    load_models()
+
+    metals = extract_metals_from_key(data.api_key)
+
+    for m in STANDARD_LIMITS.keys():
+        if m not in metals:
+            raise HTTPException(status_code=400, detail=f"Missing metal value: {m}")
+
+    df = pd.DataFrame([metals])
+    X = preprocessor.transform(df)
+    ml_pred = float(model.predict(X)[0])
+
+    HMPI, HEI, Cd_excess, MI, CI = calculate_hmpi(metals)
+    status, risk = classify_pollution(HMPI)
+    # print("DF before preprocess:", df)
+    # print("DF after preprocess:", X)
 
     return {
-        "prediction": float(prediction),
-        "used_api_key": api_key,
-        "metals_used": metals,
+        "Decoded_Input": metals,
+        "ML_Predicted_HMPI": ml_pred,
+        "Formula_HMPI": HMPI,
+        "HEI": HEI,
+        "Cd_Excess": Cd_excess,
+        "MI": MI,
+        "CI": CI,
+        "Pollution_Status": status,
+        "Risk_Level": risk
     }
-
-# BULK HMPI PREDICTION
-# async def predict_bulk_hmpi(file: UploadFile = File(...)):
-#     contents = await file.read()
-
-#     # Detect file type
-#     if file.filename.endswith(".csv"):
-#         df = pd.read_csv(BytesIO(contents))
-#     elif file.filename.endswith(".xlsx"):
-#         df = pd.read_excel(BytesIO(contents))
-#     else:
-#         return {"error": "Unsupported file type"}
-
-#     expected_cols = ["pb", "cd", "hg", "as", "cr", "cu", "zn", "ni"]
-
-#     if not all(col in df.columns for col in expected_cols):
-#         return {"error": f"Missing required columns. Expected: {expected_cols}"}
-
-#     X = df[expected_cols]
-
-#     preds = bulk_model.predict(X)
-#     df["HMPI"] = preds
-
-#     return {
-#         "rows": len(df),
-#         "predictions": preds.tolist(),
-#         "table": df.to_dict(orient="records")
-#     }
+    
