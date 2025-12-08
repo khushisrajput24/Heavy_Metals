@@ -16,24 +16,26 @@ export const handleAPIUpload = async (
   }
 
   setLoading(true);
+  setError(null);
   setPrediction(null);
 
   const BASE_URL =
     window.location.hostname === "localhost"
       ? "http://127.0.0.1:8000"
       : import.meta.env.VITE_API_URL;
+
   try {
-    if (!apiKey) {
-      throw new Error("API key is required");
-    }
     const response = await axios.post(`${BASE_URL}/predict_api_hmpi`, {
       api_key: apiKey,
     });
 
-    setPrediction(response.data.prediction);
+    setPrediction(response.data);
+
+    console.log("Response:", response.data);
   } catch (err) {
     console.error(err);
-    setPrediction("Backend not reachable");
+    setError("Backend not reachable");
+    setPrediction(null);
   }
 
   setLoading(false);

@@ -15,35 +15,52 @@ const containerStyle = {
 const center = { lat: 28.7041, lng: 77.1025 };
 
 const statusColors = {
-  Alert: "orange", // Yellow
-  Critical: "#ff5c5c", // Red
-  Safe: "#52d17a", // Green
+  Alert: "orange",
+  Critical: "#ff5c5c",
+  Safe: "#52d17a",
 };
 
 export const DelhiHeatMap = () => {
   const googleMapsApiKey = import.meta.env.VITE_REACT_APP_GOOGLE_MAPS_API_KEY;
+
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: googleMapsApiKey,
+    googleMapsApiKey,
     libraries: ["visualization"],
   });
 
   const [hovered, setHovered] = React.useState(null);
+  const [address, setAddress] = React.useState("Loading...");
+
+  // FREE Reverse Geocoding (NO billing required)
+  const fetchAddress = async (lat, lng) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+      );
+      const data = await res.json();
+      setAddress(data.display_name || "Address not available");
+    } catch (err) {
+      setAddress("Address not available");
+    }
+  };
 
   const dataPoints = React.useMemo(() => {
-    if (!isLoaded) return [];
-    const google = window.google;
+    if (!isLoaded || !window.google) return [];
     return reportsData.map((item) => ({
-      location: new google.maps.LatLng(item.lat, item.lng),
+      location: new window.google.maps.LatLng(item.lat, item.lng),
       weight: item.hpi,
     }));
   }, [isLoaded]);
 
-  return isLoaded ? (
+  if (!isLoaded) return <div>Loading Map...</div>;
+
+  return (
     <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={10}>
       <HeatmapLayer data={dataPoints} />
+
       {reportsData.map((item) => (
         <Circle
-          key={item.region}
+          key={`${item.lat}-${item.lng}`}
           center={{ lat: item.lat, lng: item.lng }}
           radius={700}
           options={{
@@ -53,27 +70,33 @@ export const DelhiHeatMap = () => {
             fillColor: statusColors[item.status],
             fillOpacity: 0.5,
           }}
-          onMouseOver={() => setHovered(item)}
-          onMouseOut={() => setHovered(null)}
+          onMouseOver={() => {
+            setHovered(item);
+            fetchAddress(item.lat, item.lng); // FREE ADDRESS LOOKUP
+          }}
+          onMouseOut={() => {
+            setHovered(null);
+            setAddress("Loading...");
+          }}
         />
       ))}
+
       {hovered && (
         <InfoWindow
           position={{ lat: hovered.lat, lng: hovered.lng }}
           onCloseClick={() => setHovered(null)}
         >
-          <div>
-            <span style={{ fontWeight: "bold" }}>{hovered.region}</span>
+          <div style={{ maxWidth: "250px" }}>
+            <strong>Location:</strong> <br />
+            {address}
             <br />
-            <strong>HPI Value:</strong>
-            <span style={{ fontWeight: "bold" }}>{hovered.hpi}</span>
             <br />
-            <strong>Risk:</strong>
+            <strong>HPI:</strong> {hovered.hpi} <br />
+            <strong>Risk:</strong>{" "}
             <span
               style={{
                 color: statusColors[hovered.status],
                 fontWeight: "bold",
-                padding: "2px",
               }}
             >
               {hovered.status}
@@ -82,5 +105,5 @@ export const DelhiHeatMap = () => {
         </InfoWindow>
       )}
     </GoogleMap>
-  ) : null;
+  );
 };
