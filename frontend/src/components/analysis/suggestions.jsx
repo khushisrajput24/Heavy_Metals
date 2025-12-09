@@ -24,6 +24,8 @@ export const Suggestion = () => {
           `${BASE_URL}/user/analysis/suggestions?contaminant=${contaminant}`
         );
 
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
         const json = await res.json();
         setData(json);
       } catch (err) {
@@ -83,7 +85,7 @@ export const Suggestion = () => {
 
             {data.immediate_actions.map((item, idx) => (
               <div key={idx} className="mt-3">
-                {item.citations.length === 0 && <></>}
+                {item.citations.length === 0 && null}
 
                 {item.citations.map((c, i) => (
                   <div key={i} className="mt-2">
