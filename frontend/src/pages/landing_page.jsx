@@ -4,7 +4,7 @@ import NavbarHome from "../components/landing_page/navbar_home";
 import { Footer } from "../components/layout/footer";
 import { useLocation } from "react-router-dom";
 import { X, TriangleAlert } from "lucide-react";
-import Plan from "../components/plan";
+
 
 const LandingPage = () => {
   const location = useLocation();
@@ -48,7 +48,7 @@ const LandingPage = () => {
       )}
 
       <Hero />
-      <Plan/>
+      
       
       <Footer />
     </div>
