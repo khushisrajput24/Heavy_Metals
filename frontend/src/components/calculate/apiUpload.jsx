@@ -65,16 +65,40 @@ export default function APIUpload() {
           <div>
             <h3 className="calculated-title">Calculated Values:</h3>
             <ul className="calculated-list">
-              <li>
+             <li
+                className={`classification-box ${
+                  prediction.Formula_HMPI < 50
+                    ? "safe"
+                    : prediction.Formula_HMPI <= 100
+                    ? "moderate"
+                    : "elevated"
+                }`}
+              >
                 <b>HPI:</b> {prediction.Formula_HMPI.toFixed(4)}
               </li>
-              <li>
+              <li
+                className={`classification-box ${
+                  prediction.HEI < 40
+                    ? "safe"
+                    : prediction.HEI <= 80
+                    ? "moderate"
+                    : "elevated"
+                }`}
+              >
                 <b>HEI:</b> {prediction.HEI.toFixed(4)}
               </li>
-              <li>
+              <li
+                className={`classification-box ${
+                  prediction.Cd_Excess < 8 ? "safe" : prediction.Cd_Excess < 32 ? "moderate" : "elevated"
+                }`}
+              >
                 <b>Cd:</b> {prediction.Cd_Excess.toFixed(4)}
               </li>
-              <li>
+             <li
+                className={`classification-box ${
+                  prediction.MI < 1 ? "safe" : "elevated"
+                }`}
+              >
                 <b>MI:</b> {prediction.MI.toFixed(4)}
               </li>
               {/* <li>CI: {prediction.CI}</li> */}

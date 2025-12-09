@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ReportsTable } from "../components/ui/report_table.jsx";
 import SearchAutocomplete from "../components/ui/searchbar.jsx";
 import { useReportStore } from "../store/reportStore";
@@ -7,14 +7,60 @@ import { Filters } from "../components/ui/filters.jsx";
 import DateRangeFilter from "../components/ui/calender.jsx";
 
 export const Reports = () => {
-  const reports = useReportStore((state) => state.reports);
-  const [search, setSearch] = useState("");
+  const reports = useReportStore((state) => state.reports || []);
 
+  const [search, setSearch] = useState("");
   const [region, setRegion] = useState("All");
   const [metal, setMetal] = useState("All");
 
-  const metalVals = ['Metal', 'Arsenic', 'Zinc', 'Nickel', 'Cadnium', 'Lead'];
-  const regionVals = ['Place', 'Mayur Vihar', 'GK-2', 'Burari', 'Janakpuri', 'Daulatpur'];
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const metalVals = ["Arsenic", "Zinc", "Nickel", "Cadmium", "Lead"];
+  const regionVals = ["Mayur Vihar", "GK-2", "Burari", "Janakpuri", "Daulatpur"];
+
+  // =============================
+  // COMPUTE MIN/MAX DATE FROM REPORTS
+  // =============================
+  const { minDate, maxDate } = useMemo(() => {
+    let min = null, max = null;
+
+    for (const r of reports) {
+      const d = new Date(r.date);
+      if (isNaN(d)) continue;
+      if (!min || d < min) min = d;
+      if (!max || d > max) max = d;
+    }
+
+    const fmt = (d) => (d ? d.toISOString().slice(0, 10) : "");
+
+    return {
+      minDate: fmt(min),
+      maxDate: fmt(max)
+    };
+  }, [reports]);
+
+
+  // =============================
+  // RESET FILTERS
+  // =============================
+  const resetFilters = () => {
+    setSearch("");
+    setRegion("All");
+    setMetal("All");
+    setStartDate("");
+    setEndDate("");
+  };
+
+
+  // =============================
+  // ON DATE CHANGE HANDLER
+  // =============================
+  function handleDateChange(type, value) {
+    if (type === "start") setStartDate(value);
+    if (type === "end")  setEndDate(value);
+  }
+
 
   return (
     <div>
@@ -23,48 +69,55 @@ export const Reports = () => {
 
         <div className="flex justify-between items-center gap-4">
           <div className="main-text">
-            View and manage all HMPI reports generated from groundwater sample
-            data.
+            View and manage all HMPI reports generated from groundwater sample data.
           </div>
 
-          <Button type="main" colorVariant="danger">
-            Raise an Issue
-          </Button>
+          <div className="flex gap-2">
+            <Button type="main" colorVariant="secondary" onClick={resetFilters}>
+              Reset Filters
+            </Button>
+
+            <Button type="main" colorVariant="danger">
+              Raise an Issue
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="ml-4 mt-2">
-        <Button type="main" colorVariant="secondary">
-          Add a Report
-        </Button>
-      </div>
 
-      {/* ✅ Search + Filters Row */}
+      {/* ============================= */}
+      {/* SEARCH + FILTERS ROW */}
+      {/* ============================= */}
       <div className="flex items-center gap-3 m-4">
         <div className="w-[400px]">
           <SearchAutocomplete setSearch={setSearch} />
         </div>
 
-        {/* ✅ Region Dropdown using .custom-select */}
-        {/* <select
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-          className="custom-select"
-        >
-          <option value="All">All Regions</option>
-          <option value="Mayur Vihar">Mayur Vihar</option>
-          <option value="GK 2">GK 2</option>
-          <option value="Hirankudna">Hirankudna</option>
-        </select> */}
+        <Filters
+          values={metalVals}
+          value={metal}
+          onChange={setMetal}
+          placeholder="All Metals"
+        />
 
-        {/* ✅ Metal Dropdown using .custom-select */}
-        <Filters values={metalVals}/>
-        <Filters values={regionVals}/>
-        <DateRangeFilter />
+        <Filters
+          values={regionVals}
+          value={region}
+          onChange={setRegion}
+          placeholder="All Regions"
+        />
+
+        <DateRangeFilter
+          startDate={startDate}
+          endDate={endDate}
+          onChange={handleDateChange}
+        />
       </div>
 
 
-      {/* ✅ Table */}
+      {/* ============================= */}
+      {/* TABLE */}
+      {/* ============================= */}
       <div className="card">
         <table className="reports-table">
           <thead>
@@ -82,6 +135,18 @@ export const Reports = () => {
           <tbody>
             {reports
               .filter((report) => {
+                const reportDate = new Date(report.date);
+                const validDate = !isNaN(reportDate);
+
+                // Effective date window:
+                const effStart = startDate || minDate;
+                const effEnd   = endDate   || maxDate;
+
+                const matchDate = validDate
+                  ? (!effStart || reportDate >= new Date(effStart)) &&
+                    (!effEnd   || reportDate <= new Date(effEnd))
+                  : true;
+
                 const matchSearch =
                   search === "" ||
                   report.region.toLowerCase().includes(search.toLowerCase()) ||
@@ -89,13 +154,10 @@ export const Reports = () => {
                   report.status.toLowerCase().includes(search.toLowerCase()) ||
                   report.date.includes(search);
 
-                const matchRegion =
-                  region === "All" || report.region === region;
+                const matchRegion = region === "All" || region === report.region;
+                const matchMetal = metal === "All" || metal === report.metal;
 
-                const matchMetal =
-                  metal === "All" || report.metal === metal;
-
-                return matchSearch && matchRegion && matchMetal;
+                return matchSearch && matchRegion && matchMetal && matchDate;
               })
               .map((report, index) => (
                 <ReportsTable key={index} report={report} index={index} />

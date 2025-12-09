@@ -1,26 +1,6 @@
 import { useState } from "react";
 
-const DateRangeFilter = ({ data = [], onFilter }) => {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
-  const handleFilter = () => {
-    if (!startDate || !endDate) {
-      onFilter(data);
-      return;
-    }
-
-    const filtered = data.filter((item) => {
-      const itemDate = new Date(item.date);
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-
-      return itemDate >= start && itemDate <= end;
-    });
-
-    onFilter(filtered);
-  };
-
+const DateRangeFilter = ({ startDate, endDate, onChange }) => {
   return (
     <div className="flex items-center gap-3">
       <label
@@ -33,11 +13,11 @@ const DateRangeFilter = ({ data = [], onFilter }) => {
       >
         Start Date:
       </label>
+
       <input
         type="date"
         value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        placeholder="Start Date"
+        onChange={(e) => onChange("start", e.target.value)}
         className="custom-select"
       />
 
@@ -51,11 +31,11 @@ const DateRangeFilter = ({ data = [], onFilter }) => {
       >
         End Date:
       </label>
+
       <input
         type="date"
         value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        placeholder="End Date"
+        onChange={(e) => onChange("end", e.target.value)}
         className="custom-select"
       />
     </div>
