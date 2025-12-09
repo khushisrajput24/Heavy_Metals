@@ -16,14 +16,16 @@ app = FastAPI(title="HMPI Backend")
 
 FRONTEND_URL = os.getenv("CORS_ORIGIN")
 
+# CORS Middleware
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    FRONTEND_URL,  # deployed frontend from .env
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        FRONTEND_URL,  # deployed frontend from .env
-    ],
-    allow_origin_regex="https?://.*",   # fallback for production
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
