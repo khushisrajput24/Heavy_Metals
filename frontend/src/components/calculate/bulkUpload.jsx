@@ -71,7 +71,7 @@ export default function BulkUpload() {
         <ul>
           <li>First row should contain column headers</li>
           <li>Include columns: sample_id, latitude, longitude, depth</li>
-          <li>Heavy metal columns: Pb, Cd, Hg, As, Cr, Cu, Zn, Ni</li>
+          <li>Heavy metal columns: Cr, Mn, Fe,	Ni,	Cu,	Zn,	As	</li>
           <li>Use numeric values only for concentrations</li>
         </ul>
       </div>
