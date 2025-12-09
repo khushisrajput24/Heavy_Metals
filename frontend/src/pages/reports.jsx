@@ -17,13 +17,18 @@ export const Reports = () => {
   const [endDate, setEndDate] = useState("");
 
   const metalVals = ["Arsenic", "Zinc", "Nickel", "Cadmium", "Lead"];
-  const regionVals = ["Mayur Vihar", "GK-2", "Burari", "Janakpuri", "Daulatpur"];
+  const regionVals = [
+    "Mayur Vihar",
+    "GK-2",
+    "Burari",
+    "Janakpuri",
+    "Daulatpur",
+  ];
 
-  // =============================
   // COMPUTE MIN/MAX DATE FROM REPORTS
-  // =============================
   const { minDate, maxDate } = useMemo(() => {
-    let min = null, max = null;
+    let min = null,
+      max = null;
 
     for (const r of reports) {
       const d = new Date(r.date);
@@ -36,14 +41,11 @@ export const Reports = () => {
 
     return {
       minDate: fmt(min),
-      maxDate: fmt(max)
+      maxDate: fmt(max),
     };
   }, [reports]);
 
-
-  // =============================
   // RESET FILTERS
-  // =============================
   const resetFilters = () => {
     setSearch("");
     setRegion("All");
@@ -52,15 +54,11 @@ export const Reports = () => {
     setEndDate("");
   };
 
-
-  // =============================
   // ON DATE CHANGE HANDLER
-  // =============================
   function handleDateChange(type, value) {
     if (type === "start") setStartDate(value);
-    if (type === "end")  setEndDate(value);
+    if (type === "end") setEndDate(value);
   }
-
 
   return (
     <div>
@@ -69,7 +67,8 @@ export const Reports = () => {
 
         <div className="flex justify-between items-center gap-4">
           <div className="main-text">
-            View and manage all HMPI reports generated from groundwater sample data.
+            View and manage all HMPI reports generated from groundwater sample
+            data.
           </div>
 
           <div className="flex gap-2">
@@ -83,7 +82,6 @@ export const Reports = () => {
           </div>
         </div>
       </div>
-
 
       {/* ============================= */}
       {/* SEARCH + FILTERS ROW */}
@@ -114,7 +112,6 @@ export const Reports = () => {
         />
       </div>
 
-
       {/* ============================= */}
       {/* TABLE */}
       {/* ============================= */}
@@ -140,11 +137,11 @@ export const Reports = () => {
 
                 // Effective date window:
                 const effStart = startDate || minDate;
-                const effEnd   = endDate   || maxDate;
+                const effEnd = endDate || maxDate;
 
                 const matchDate = validDate
                   ? (!effStart || reportDate >= new Date(effStart)) &&
-                    (!effEnd   || reportDate <= new Date(effEnd))
+                    (!effEnd || reportDate <= new Date(effEnd))
                   : true;
 
                 const matchSearch =
@@ -154,7 +151,8 @@ export const Reports = () => {
                   report.status.toLowerCase().includes(search.toLowerCase()) ||
                   report.date.includes(search);
 
-                const matchRegion = region === "All" || region === report.region;
+                const matchRegion =
+                  region === "All" || region === report.region;
                 const matchMetal = metal === "All" || metal === report.metal;
 
                 return matchSearch && matchRegion && matchMetal && matchDate;
