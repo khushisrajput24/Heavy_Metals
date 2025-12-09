@@ -8,7 +8,9 @@ import os
 import sys
 
 # Import pickle classes
+from controllers.hmpiCalc import predict_from_api_key as predict_api_hmpi_impl, APIKeyInput
 from controllers.bulk import HMPIModel, FinalHMPIModel
+from controllers.suggestionsController import suggestionRouter as suggestions_router
 
 app = FastAPI(title="HMPI Backend")
 
@@ -19,9 +21,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        FRONTEND_URL
+        FRONTEND_URL,  # deployed frontend from .env
     ],
-    allow_origin_regex="https?://.*",
+    allow_origin_regex="https?://.*",   # fallback for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -132,6 +134,14 @@ async def process_csv(file: UploadFile = File(...)):
         "results": final_output
     }
 
+# HMPI API Prediction Route
+@app.post("/predict_api_hmpi")
+async def predict_api_hmpi(payload: dict):
+    return predict_api_hmpi_impl(APIKeyInput(**payload))
+
+
+# Suggestions Router
+app.include_router(suggestions_router, tags=["suggestions"])
 
 @app.get("/")
 def home():

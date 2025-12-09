@@ -18,7 +18,3 @@ logs/
 .idea/
 
 dataset/
-models/model_fixed.pkl
-models/model.pkl
-models/preprocessor.pkl
-models/preprocessor_fixed.pkl
