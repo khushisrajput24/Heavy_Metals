@@ -577,23 +577,39 @@ export const notifications = [
 ];
 
 export const permissibleLimitsUgPerL = {
-  "Lead (Pb)": 5000,    // 10 µg/L
-  "Cadmium (Cd)": 2000,
-  "Mercury (Hg)": 5,
-  "Arsenic (As)": 2000,
-  "Chromium (Cr)": 1500,
-  "Copper (Cu)": 2000, // 2 mg/L = 2000 µg/L
-  "Zinc (Zn)": 5000,   // 3 mg/L = 3000 µg/L
-  "Nickel (Ni)": 5000,
+  "Iron(Fe)": 0,  
+  "Lead (Pb)": 0,    // 10 µg/L
+  "Cadmium (Cd)": 0,
+  "Mercury (Hg)": 0,
+  "Arsenic (As)": 50,
+  "Chromium (Cr)": 0,
+  "Copper (Cu)": 1500, 
+  "Zinc (Zn)": 15000,  
+  "Nickel (Ni)": 0,
+  "Manganese (Mn)": 1000,
+  "Selenium (Se)": 0, 
+  "Aluminum (Al)": 200,
+  "Molybdenum (Mo)": 0,
+  "Silver (Ag)": 0,
+  "Flouride (F)": 1500,
+  "Uranium (U)": 0,
 };
 
-export const LODinUgPerL = {
+export const acceptableLimitsUgPerL = {
+  "Iron(Fe)":1000,
  "Lead (Pb)": 10,  
-  "Cadmium (Cd)": 10,
+  "Cadmium (Cd)": 3,
   "Mercury (Hg)": 1,
   "Arsenic (As)": 10,
-  "Chromium (Cr)": 10,
-  "Copper (Cu)": 10,
-  "Zinc (Zn)": 10,   
-  "Nickel (Ni)": 10,
+  "Chromium (Cr)": 50,
+  "Copper (Cu)": 50,
+  "Zinc (Zn)": 5000,   
+  "Nickel (Ni)": 20,
+  "Manganese (Mn)": 100,
+  "Selenium (Se)": 10,
+  "Aluminum (Al)": 30,
+  "Molybdenum (Mo)": 70,
+  "Silver (Ag)": 100,
+  "Flouride (F)": 1000,
+  "Uranium (U)": 30,
 };

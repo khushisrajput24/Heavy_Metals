@@ -1,142 +1,146 @@
-import { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   FlaskConical,
   TestTubeDiagonal,
   ChevronDown,
   CircleCheckBig,
 } from "lucide-react";
-import { Button } from "../ui/button";
-import { handleManualSubmit } from "../../utils/functions/manualUpload";
-import { useViewReport } from "../../utils/functions/utility";
+import { handleManualSubmit } from "../../utils/functions/manualUpload"; // path -> adjust if needed
 import "../ui/css/about_us.css";
-import "../ui/css/data_entry.css"
-export default function ManualUpload() {
-  const [formData, setFormData] = useState({
-    sampleId: "",
-    depth: "",
-    latitude: "",
-    longitude: "",
-    lead: "",
-    cadmium: "",
-    mercury: "",
-    arsenic: "",
-    chromium: "",
-    copper: "",
-    zinc: "",
-    nickel: "",
-  });
+import "../ui/css/data_entry.css";
 
-  const [units, setUnits] = useState({
-    lead: "µg/L",
-    cadmium: "µg/L",
-    mercury: "µg/L",
-    arsenic: "µg/L",
-    chromium: "µg/L",
-    copper: "µg/L",
-    zinc: "µg/L",
-    nickel: "µg/L",
-  });
+import {
+  permissibleLimitsUgPerL as defaultPermissible,
+  acceptableLimitsUgPerL as defaultAcceptable,
+} from "../../utils/constants"; // adjust path if needed
 
-  const [errors, setErrors] = useState({});
-  const [hmpi, setHmpi] = useState(null);
+/* Helper: displayName -> internal key used in formData/units */
+const toInternalKey = (displayName) =>
+  displayName.replace(/\(.*?\)/g, "").replace(/[^a-zA-Z]/g, "").toLowerCase();
 
-  const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-    // clear error while typing
-    setErrors((prev) => ({ ...prev, [id]: "" }));
-  };
-
-  const viewReport = useViewReport();
-
-  const MetalInput = ({ id, label, limit, alimit }) => (
+/* Reusable MetalInput (memoized) */
+const MetalInput = React.memo(function MetalInput({
+  internalId,
+  displayName,
+  label,
+  value,
+  unit,
+  onChangeValue,
+  onChangeUnit,
+  error,
+  permissible,
+  acceptable,
+  editingLimits,
+  onLimitChange,
+}) {
+  return (
     <div className="input-group">
-      <label htmlFor={id}>
-        {label} 
-      </label>
-      <span className="limit">Permissible Limit: {limit}</span>
+      <label htmlFor={internalId}>{label}</label>
 
-      <span className="limit">Acceptable Limit: {alimit}</span>
-      
-    <div
-      className="metal-input-wrapper"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-      }}
-    >
-        <input
-          type="text"
-          id={id}
-          placeholder={`Enter value in ${units[id]}`}
-          value={formData[id]}
-          onChange={handleInputChange}
-        />
+      <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "6px" }}>
+        {!editingLimits ? (
+          <>
+            <span className="limit">Permissible: {permissible ?? "—"} µg/L</span>
+            <span className="limit">Acceptable: {acceptable ?? "—"} µg/L</span>
+          </>
+        ) : (
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <label style={{ fontSize: "12px" }}>
+              Perm:
+              <input
+                type="number"
+                step="any"
+                value={permissible === null ? "" : permissible}
+                onChange={(e) => onLimitChange(displayName, "permissible", e.target.value)}
+                style={{ marginLeft: "6px", width: "110px", height: "34px", padding: "6px" }}
+                placeholder="µg/L"
+              />
+            </label>
 
-        <div
+            <label style={{ fontSize: "12px" }}>
+              Acc:
+              <input
+                type="number"
+                step="any"
+                value={acceptable === null ? "" : acceptable}
+                onChange={(e) => onLimitChange(displayName, "acceptable", e.target.value)}
+                style={{ marginLeft: "6px", width: "110px", height: "34px", padding: "6px" }}
+                placeholder="µg/L"
+              />
+            </label>
+          </div>
+        )}
+      </div>
+
+      <div
+        className="metal-input-wrapper"
         style={{
-          position: "relative",
-          width: "120px",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
         }}
       >
-        <select
-          value={units[id]}
-          onChange={(e) => handleUnitChange(e, id)}
-          aria-label={`${label} unit`}
-          style={{
-            width: "100%",
-            height: "40px",
-            padding: "6px 32px 6px 8px",
-            appearance: "none",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-            fontSize: "14px",
-            backgroundColor: "white",
-          }}
-        >
-          <option value="ppm">ppm</option>
-          <option value="ppb">ppb</option>
-          <option value="mg/L">mg/L</option>
-          <option value="µg/L">µg/L</option>
-        </select>
-
-        {/* CHEVRON INSIDE DROPDOWN */}
-        <ChevronDown
-          size={18}
-          style={{
-            position: "absolute",
-            right: "8px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            pointerEvents: "none",
-            color: "#555",
-          }}
+        <input
+          type="text"
+          id={internalId}
+          name={internalId}
+          inputMode="numeric"
+          autoComplete="off"
+          placeholder={`Enter value in ${unit || "µg/L"}`}
+          value={value ?? ""}
+          onChange={(e) => onChangeValue(internalId, e.target.value)}
         />
-      </div>
-      </div>
-      
 
-      {errors[id] && (
-        <p className="text-red-500 text-xs mt-1">{errors[id]}</p>
-      )}
+        <div style={{ position: "relative", width: "120px" }}>
+          <select
+            value={unit || "µg/L"}
+            onChange={(e) => onChangeUnit(internalId, e.target.value)}
+            aria-label={`${label} unit`}
+            style={{
+              width: "100%",
+              height: "40px",
+              padding: "6px 32px 6px 8px",
+              appearance: "none",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              fontSize: "14px",
+              backgroundColor: "white",
+            }}
+          >
+            <option value="ppm">ppm</option>
+            <option value="ppb">ppb</option>
+            <option value="mg/L">mg/L</option>
+            <option value="µg/L">µg/L</option>
+          </select>
+
+          <ChevronDown
+            size={18}
+            style={{
+              position: "absolute",
+              right: "8px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+              color: "#555",
+            }}
+          />
+        </div>
+      </div>
+
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>
-    
   );
-  const StatusLegend = ({ statusLabels }) => {
+});
+
+const StatusLegend = ({ statusLabels }) => {
   return (
     <div
-      
       style={{
         marginTop: "20px",
         padding: "10px",
-        alignContent: "center",
+        display: "flex",
+        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        
       }}
     >
       <div className="card-title">Status Legend</div>
@@ -151,12 +155,7 @@ export default function ManualUpload() {
         }}
       >
         {statusLabels.map((label, index) => {
-          const statusClass =
-            index === 0
-              ? "positive"
-              : index === 1
-              ? "critical"
-              : "negative";
+          const statusClass = index === 0 ? "positive" : index === 1 ? "critical" : "negative";
 
           return (
             <div
@@ -184,21 +183,148 @@ export default function ManualUpload() {
   );
 };
 
+export default function ManualUpload() {
+  // create default limits from constants (source of truth initial values)
+  const defaultLimits = useMemo(() => {
+    const res = {};
+    const keys = Object.keys(defaultPermissible || {});
+    keys.forEach((m) => {
+      res[m] = {
+        permissible: defaultPermissible[m] ?? null,
+        acceptable: defaultAcceptable[m] ?? null,
+      };
+    });
+    return res;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // state
+  const [limits, setLimits] = useState(defaultLimits);
+  const [editingLimits, setEditingLimits] = useState(false);
+
+  // metal names derived from current limits (re-renders when limits change)
+  const metalDisplayNames = useMemo(() => Object.keys(limits || {}), [limits]);
+
+  // form data keyed by internal keys (e.g., 'lead', 'cadmium')
+  const [formData, setFormData] = useState(() => {
+    const base = { latitude: "", longitude: "" };
+    metalDisplayNames.forEach((m) => (base[toInternalKey(m)] = ""));
+    return base;
+  });
+
+  // keep units keyed by internal key
+  const [units, setUnits] = useState(() => {
+    const u = {};
+    metalDisplayNames.forEach((m) => (u[toInternalKey(m)] = "µg/L"));
+    return u;
+  });
+
+  // errors & result
+  const [errors, setErrors] = useState({});
+  const [hmpi, setHmpi] = useState(null);
+
+  // custom metal temp state
+  const [customMetal, setCustomMetal] = useState({
+    name: "",
+    conc: "",
+    permissible: "",
+    acceptable: "",
+  });
+
+  // ensure when limits change (e.g., user added metal) we have corresponding keys in formData & units
+  const ensureFormKeys = useCallback(
+    (newLimits) => {
+      setFormData((prev) => {
+        const copy = { ...prev };
+        Object.keys(newLimits).forEach((displayName) => {
+          const k = toInternalKey(displayName);
+          if (!(k in copy)) copy[k] = "";
+        });
+        return copy;
+      });
+      setUnits((prev) => {
+        const copy = { ...prev };
+        Object.keys(newLimits).forEach((displayName) => {
+          const k = toInternalKey(displayName);
+          if (!(k in copy)) copy[k] = "µg/L";
+        });
+        return copy;
+      });
+    },
+    [setFormData, setUnits]
+  );
+
+  // call once initially and whenever limits change
+  React.useEffect(() => {
+    ensureFormKeys(limits);
+  }, [limits, ensureFormKeys]);
+
+  // handlers
+  const handleInputChange = useCallback((field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value == null ? "" : String(value) }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  }, []);
+
+  const handleUnitChange = useCallback((field, value) => {
+    setUnits((prev) => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleLimitChange = (displayName, field, rawValue) => {
+    setLimits((prev) => ({
+      ...prev,
+      [displayName]: {
+        ...prev[displayName],
+        [field]: rawValue === "" ? null : Number(rawValue),
+      },
+    }));
+  };
+
+  const resetLimits = () => setLimits(defaultLimits);
+
+  const addCustomMetal = () => {
+    const name = (customMetal.name || "").trim();
+    if (!name) return;
+
+    const displayName = name;
+    const internalKey = toInternalKey(displayName);
+
+    // avoid overwriting existing metal if same displayName exists
+    setLimits((prev) => {
+      if (prev[displayName]) return prev; // already exists
+      return {
+        ...prev,
+        [displayName]: {
+          permissible:
+            customMetal.permissible === "" ? null : Number(customMetal.permissible),
+          acceptable:
+            customMetal.acceptable === "" ? null : Number(customMetal.acceptable),
+        },
+      };
+    });
+
+    setFormData((prev) => ({ ...prev, [internalKey]: customMetal.conc || "" }));
+    setUnits((prev) => ({ ...prev, [internalKey]: "µg/L" }));
+
+    setCustomMetal({
+      name: "",
+      conc: "",
+      permissible: "",
+      acceptable: "",
+    });
+  };
 
   return (
     <div id="manual-entry-form" className="w-[60%] mx-auto">
       <form
         className="calculator-form"
-        onSubmit={(e) => handleManualSubmit(e, formData, setHmpi, setErrors)}
+        onSubmit={(e) => handleManualSubmit(e, formData, setHmpi, setErrors, units, limits)}
       >
         <div className="card-section">
           <h2 className="card-title">
             <FlaskConical size={20} strokeWidth={2} />
             Sample Information
           </h2>
-          <p className="card-subtitle">
-            Enter basic information about your groundwater sample
-          </p>
+          <p className="card-subtitle">Enter basic information about your groundwater sample</p>
           <div className="input-grid">
             <div className="input-group">
               <label htmlFor="latitude">Latitude</label>
@@ -207,7 +333,7 @@ export default function ManualUpload() {
                 id="latitude"
                 placeholder="e.g., 40.7128"
                 value={formData.latitude}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange("latitude", e.target.value)}
               />
               {errors.latitude && (
                 <p className="text-red-500 text-xs mt-1">{errors.latitude}</p>
@@ -221,7 +347,7 @@ export default function ManualUpload() {
                 id="longitude"
                 placeholder="e.g., -74.0060"
                 value={formData.longitude}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange("longitude", e.target.value)}
               />
               {errors.longitude && (
                 <p className="text-red-500 text-xs mt-1">{errors.longitude}</p>
@@ -236,65 +362,98 @@ export default function ManualUpload() {
             <TestTubeDiagonal size={20} strokeWidth={2} />
             Heavy Metal Concentrations
           </h2>
-          <p className="card-subtitle">
-            Enter the concentration values for each heavy metal detected
-          </p>
+          <p className="card-subtitle">Enter the concentration values for each heavy metal detected</p>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <div>
+              <label style={{ marginRight: "8px" }}>
+                <input type="checkbox" checked={editingLimits} onChange={() => setEditingLimits((s) => !s)} /> Edit limits
+              </label>
+            </div>
+
+            {editingLimits && (
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button type="button" className="btn" onClick={resetLimits}>Reset to defaults</button>
+              </div>
+            )}
+          </div>
+
           <div className="input-grid metal-grid">
-            <MetalInput
-              id="lead"
-              label="Lead (Pb)"
-              limit="10 µg/L"
-              alimit="10 µg/L"
-            />
-            <MetalInput
-              id="cadmium"
-              label="Cadmium (Cd)"
-              limit="3 µg/L"
-              alimit="3 µg/L"
-            />
-            <MetalInput
-              id="mercury"
-              label="Mercury (Hg)"
-              limit="1 µg/L"
-              alimit="1 µg/L"
-            />
-            <MetalInput
-              id="arsenic"
-              label="Arsenic (As)"
-              limit="50 µg/L"
-              alimit="10 µg/L"
-            />
-            <MetalInput
-              id="chromium"
-              label="Chromium (Cr)"
-              limit="50 µg/L"
-              alimit="50 µg/L"
-            />
-            <MetalInput
-              id="copper"
-              label="Copper (Cu)"
-              limit="1500 µg/L"
-              alimit="50 µg/L"
-            />
-            <MetalInput
-              id="zinc"
-              label="Zinc (Zn)"
-              limit="15000 µg/L"
-              alimit="5000 µg/L"
-            />
-            <MetalInput
-              id="nickel"
-              label="Nickel (Ni)"
-              limit="20 µg/L"
-              alimit="20 µg/L"
-            />
+            {metalDisplayNames.map((displayName) => {
+              const internalId = toInternalKey(displayName);
+
+              return (
+                <MetalInput
+                  key={displayName}
+                  internalId={internalId}
+                  displayName={displayName}
+                  label={displayName}
+                  value={formData[internalId] ?? ""}
+                  unit={units[internalId] ?? "µg/L"}
+                  onChangeValue={handleInputChange}
+                  onChangeUnit={handleUnitChange}
+                  error={errors[internalId]}
+                  permissible={limits[displayName]?.permissible ?? null}
+                  acceptable={limits[displayName]?.acceptable ?? null}
+                  editingLimits={editingLimits}
+                  onLimitChange={handleLimitChange}
+                />
+              );
+            })}
+          </div>
+
+          {/* Add custom metal */}
+          <div style={{ marginTop: "20px" }}>
+            <h2 className="card-title">Add New Metal</h2>
+
+            <div className="input-grid">
+              <div className="input-group">
+                <label>Metal Name</label>
+                <input
+                  value={customMetal.name}
+                  onChange={(e) => setCustomMetal({ ...customMetal, name: e.target.value })}
+                />
+              </div>
+              <div className="input-group">
+                <label>Metal Conc (µg/L)</label>
+                <input
+                  value={customMetal.conc}
+                  onChange={(e) => setCustomMetal({ ...customMetal, conc: e.target.value })}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>Permissible (µg/L)</label>
+                <input
+                  type="number"
+                  value={customMetal.permissible}
+                  onChange={(e) => setCustomMetal({ ...customMetal, permissible: e.target.value })}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>Acceptable (µg/L)</label>
+                <input
+                  type="number"
+                  value={customMetal.acceptable}
+                  onChange={(e) => setCustomMetal({ ...customMetal, acceptable: e.target.value })}
+                />
+              </div>
+
+              <button
+                type="button"
+                className="btn"
+                style={{ padding: "4px 10px", height: "50px", alignContent: "center", justifyContent: "center" }}
+                onClick={addCustomMetal}
+              >
+                + Add Metal
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="button-container">
-          <button type="submit" className="btn calculate-btn">
-            Calculate HMPI
-          </button>
+          <button type="submit" className="btn calculate-btn">Calculate HMPI</button>
         </div>
       </form>
 
@@ -303,51 +462,25 @@ export default function ManualUpload() {
           <div>
             <h3 className="calculated-title">Calculated Values:</h3>
             <ul className="calculated-list">
-              <li
-                className={`classification-box ${
-                  hmpi.hpi < 50
-                    ? "safe"
-                    : hmpi.hpi <= 100
-                    ? "moderate"
-                    : "elevated"
-                }`}
-              >
-                <b>HPI:</b> {hmpi.hpi.toFixed(4)}
+              <li className={`classification-box ${hmpi.hpi < 50 ? "safe" : hmpi.hpi <= 100 ? "moderate" : "elevated"}`}>
+                <b>HPI:</b> {typeof hmpi.hpi === "number" ? hmpi.hpi.toFixed(4) : hmpi.hpi}
               </li>
 
-              <li
-                className={`classification-box ${
-                  hmpi.mi < 1 ? "safe" : "elevated"
-                }`}
-              >
-                <b>MI:</b> {hmpi.mi.toFixed(4)}
+              <li className={`classification-box ${hmpi.mi < 1 ? "safe" : "elevated"}`}>
+                <b>MI:</b> {typeof hmpi.mi === "number" ? hmpi.mi.toFixed(4) : hmpi.mi}
               </li>
 
-              <li
-                className={`classification-box ${
-                  hmpi.cd < 8 ? "safe" : hmpi.cd < 32 ? "moderate" : "elevated"
-                }`}
-              >
-                <b>Cd:</b> {hmpi.cd.toFixed(4)}
+              <li className={`classification-box ${hmpi.Cd < 8 ? "safe" : hmpi.Cd < 32 ? "moderate" : "elevated"}`}>
+                <b>Cd:</b> {typeof hmpi.Cd === "number" ? hmpi.Cd.toFixed(4) : hmpi.Cd}
               </li>
 
-              <li
-                className={`classification-box ${
-                  hmpi.hei < 40
-                    ? "safe"
-                    : hmpi.hei <= 80
-                    ? "moderate"
-                    : "elevated"
-                }`}
-              >
-                <b>HEI:</b> {hmpi.hei.toFixed(4)}
+              <li className={`classification-box ${hmpi.hei < 40 ? "safe" : hmpi.hei <= 80 ? "moderate" : "elevated"}`}>
+                <b>HEI:</b> {typeof hmpi.hei === "number" ? hmpi.hei.toFixed(4) : hmpi.hei}
               </li>
             </ul>
-            
           </div>
           <StatusLegend statusLabels={["Safe", "Critical", "Risky"]} />
         </div>
-        
       )}
 
       <div className="standards-section">
@@ -362,8 +495,7 @@ export default function ManualUpload() {
           >
             <CircleCheckBig className="check-icon" />
             <span>
-              BIS 10500 (2012): Drinking water for Permissible and Acceptable
-              limits
+              BIS 10500 (2012): Drinking water for Permissible and Acceptable limits
             </span>
           </a>
 
@@ -392,5 +524,4 @@ export default function ManualUpload() {
       </div>
     </div>
   );
-  
 }
