@@ -420,17 +420,17 @@ export const handleManualSubmit = (event, formData, setHmpi, setErrors, units) =
 
   const newErrors = {};
 
-  // Sample info validation
-  if (!formData.sampleId.trim()) {
-    newErrors.sampleId = "Sample ID is required.";
-  }
+  // // Sample info validation
+  // if (!formData.sampleId.trim()) {
+  //   newErrors.sampleId = "Sample ID is required.";
+  // }
 
-  const depth = Number(formData.depth);
-  if (!formData.depth.trim()) {
-    newErrors.depth = "Depth is required.";
-  } else if (Number.isNaN(depth) || depth <= 0) {
-    newErrors.depth = "Depth must be a positive number.";
-  }
+  // const depth = Number(formData.depth);
+  // if (!formData.depth.trim()) {
+  //   newErrors.depth = "Depth is required.";
+  // } else if (Number.isNaN(depth) || depth <= 0) {
+  //   newErrors.depth = "Depth must be a positive number.";
+  // }
 
   const lat = Number(formData.latitude);
   if (!formData.latitude.trim()) {
@@ -462,11 +462,7 @@ export const handleManualSubmit = (event, formData, setHmpi, setErrors, units) =
     const raw = (formData[key] ?? "").toString();
     const num = Number(raw);
 
-    if (!raw.trim()) {
-      newErrors[key] = `${label} is required.`;
-    } else if (Number.isNaN(num) || num < 0) {
-      newErrors[key] = `${label} must be a non-negative number.`;
-    }
+    
   });
 
   // If any errors, set and stop
