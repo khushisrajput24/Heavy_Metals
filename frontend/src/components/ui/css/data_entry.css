@@ -201,11 +201,10 @@
   transition: 0.2s ease;
 }
 
-.calculated-list li:hover {
+/* .calculated-list li:hover {
   background: #dce9fb;
   transform: translateX(3px);
-}
-<<<<<<< HEAD
+} */
 
 /* ===============================
    Unit Conversion 4x4 Box
@@ -305,5 +304,3 @@
   background: #dce9fb;
   transform: translateX(3px);
 }
-=======
->>>>>>> 100ed3ed4eb5a53704965b0d32ba8694fa81373e

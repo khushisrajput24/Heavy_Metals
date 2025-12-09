@@ -393,14 +393,20 @@
 
 .classification-box.safe {
   border: 2px solid #20c15b;
+  background-color: #1bb581;
+  color: #ffffff;
 }
 
 .classification-box.moderate {
   border: 2px solid #ff902e;
+  background-color: #ffb366;
+  color: #ffffff;
 }
 
 .classification-box.elevated {
   border: 2px solid #ff3131;
+  background-color: #ff6b6b;
+  color: #ffffff;
 }
 
 .range-value {
