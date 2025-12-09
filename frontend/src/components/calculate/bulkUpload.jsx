@@ -1,7 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FolderUp, Check } from "lucide-react";
-import { Button } from "../ui/button";
-import { useViewReport } from "../../utils/functions/utility";
 import {
   handleFileSelect,
   handleBulkUpload,
@@ -14,11 +13,17 @@ export default function BulkUpload() {
   const [error, setError] = useState(null);
   const [prediction, setPrediction] = useState(null);
 
-  const viewReport = useViewReport();
+  const navigate = useNavigate();
 
   const onFileChange = (e) => {
     handleFileSelect(e, setFile);
     setError(null);
+  };
+
+  const handleReadMore = () => {
+    navigate("/user/analysis/bulk-report", {
+      state: { fullData: prediction.results },
+    });
   };
 
   return (
@@ -34,6 +39,7 @@ export default function BulkUpload() {
           <p className="card-subtitle">
             Upload a file with multiple groundwater samples for batch processing
           </p>
+
           <button
             className="btn choose-file-btn"
             onClick={() => document.getElementById("file-upload").click()}
@@ -62,7 +68,7 @@ export default function BulkUpload() {
 
       {error && (
         <div className="card-section">
-          <p className="text-xs mt-2 text-red-500 !text-red-500">{error}</p>
+          <p className="text-xs mt-2 text-red-500">{error}</p>
         </div>
       )}
 
@@ -70,8 +76,8 @@ export default function BulkUpload() {
         <h3>File Format Requirements:</h3>
         <ul>
           <li>First row should contain column headers</li>
-          <li>Include columns: sample_id, latitude, longitude, depth</li>
-          <li>Heavy metal columns: Cr, Mn, Fe,	Ni,	Cu,	Zn,	As	</li>
+          {/* <li>Include columns: sample_id, latitude, longitude, depth</li> */}
+          {/* <li>Heavy metal columns: Cr, Mn, Fe, Ni, Cu, Zn, As, Pb</li> */}
           <li>Use numeric values only for concentrations</li>
         </ul>
       </div>
@@ -88,7 +94,20 @@ export default function BulkUpload() {
         </button>
       </div>
 
-      {prediction?.results && <CalcTable prediction={prediction.results} />}
+      {/* Preview first 5 rows */}
+      {prediction?.results && (
+        <>
+          <CalcTable prediction={prediction.results.slice(0, 5)} />
+
+          {prediction.results.length > 5 && (
+            <div className="m-4 flex justify-center">
+              <button className="btn read-more-btn" onClick={handleReadMore}>
+                Read More →
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

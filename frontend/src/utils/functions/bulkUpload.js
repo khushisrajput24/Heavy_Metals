@@ -1,10 +1,13 @@
+// bulkUpload.js
 import axios from "axios";
 
+// Handle file selection
 export const handleFileSelect = (event, setFile) => {
   const file = event.target.files?.[0];
   if (file) setFile(file);
 };
 
+// Handle bulk upload
 export const handleBulkUpload = async (
   event,
   file,
@@ -28,30 +31,33 @@ export const handleBulkUpload = async (
     const formData = new FormData();
     formData.append("file", file);
 
+    // Auto-detect backend URL
     const BASE_URL =
       window.location.hostname === "localhost"
-        ? "http://127.0.0.1:8000"
+        ? "http://127.0.0.1:8000" // FastAPI backend
         : import.meta.env.VITE_API_URL;
 
-    const response = await axios.post(`${BASE_URL}/process_csv`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    // Correct endpoint (change if needed)
+    const ENDPOINT = "/process_csv"; // or "/predict-bulk"
+
+    const response = await axios.post(`${BASE_URL}${ENDPOINT}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
 
     console.log("API RESPONSE:", response.data);
 
-    if (response.data.status !== "success") {
-      setError(response.data.message || "Backend error occurred.");
+    // If backend returns status
+    if (response.data.status && response.data.status !== "success") {
+      setError(response.data.message || "Backend error occurred!");
       return;
     }
 
-    // Show output from first row only
+    // Set prediction
     setPrediction(response.data);
   } catch (error) {
-    console.error(error);
+    console.error("UPLOAD ERROR:", error);
     setError("Backend error or network failure.");
+  } finally {
+    setLoading(false);
   }
-
-  setLoading(false);
 };

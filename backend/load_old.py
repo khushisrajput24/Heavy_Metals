@@ -8,8 +8,6 @@ setattr(ct, "_RemainderColsList", _RemainderColsList)
 
 bulk = joblib.load("models/bulk_upload.pkl")
 
-joblib.dump(bulk, "models/bulk_upload_fixed.pkl")
-
 print("Bulk upload model fixed successfully.")
 
 pre = joblib.load("models/preprocessor.pkl")

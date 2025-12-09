@@ -9,7 +9,7 @@ import sys
 
 
 class HMPIModel:
-    def _init_(self):
+    def __init__(self):
         self.scaler = None
         self.reg_model = None
         self.clf_model = None
