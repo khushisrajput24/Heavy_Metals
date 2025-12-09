@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { DashboardField } from "./pages/dashboardField";
 import { InputData } from "./pages/inputData";
 import { LayoutField } from "./components/layout/layoutField";
+import BulkReport from "./components/calculate/bulkReport";
 
 const router = createBrowserRouter([
   {
@@ -71,6 +72,11 @@ const router = createBrowserRouter([
         path: "settings",
         element: <Settings />,
         handle: { header: "Settings" },
+      },
+      {
+        path: "analysis/bulk-report",
+        element: <BulkReport />,
+        handle: { header: "Bulk Report" },
       },
     ],
   },
