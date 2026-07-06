@@ -9,7 +9,7 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 suggestionRouter = APIRouter()
 
 # Load corpus once only
-with open("dataset/metal_remove_corpus.txt", "r", encoding="utf-8") as f:
+with open("data/metal_remove_corpus.txt", "r", encoding="utf-8") as f:
     METAL_CORPUS = f.read()
 
 QUERIES = {
