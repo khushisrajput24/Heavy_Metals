@@ -26,6 +26,7 @@ export const DelhiHeatMap = () => {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey,
     libraries: ["visualization"],
+    version: "3.64",
   });
 
   const [hovered, setHovered] = React.useState(null);

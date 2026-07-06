@@ -13,6 +13,7 @@ lerna-debug.log*
 backend/
 __pycache__/
 node_modules
+node_modules_old
 dist
 dist-ssr
 *.local

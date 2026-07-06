@@ -16,11 +16,13 @@ import { DashboardField } from "./pages/dashboardField";
 import { InputData } from "./pages/inputData";
 import { LayoutField } from "./components/layout/layoutField";
 import BulkReport from "./components/calculate/bulkReport";
+import { RouteErrorBoundary } from "./components/layout/RouteErrorBoundary";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <LandingPage />,
+    errorElement: <RouteErrorBoundary />,
   },
 
   // ================= USER PANEL ==================
@@ -31,6 +33,7 @@ const router = createBrowserRouter([
         <Layout />
       </ProtectedRoute>
     ),
+    errorElement: <RouteErrorBoundary />,
     children: [
       { index: true, element: <Dashboard />, handle: { header: "Dashboard" } },
 
@@ -89,6 +92,7 @@ const router = createBrowserRouter([
         <LayoutField /> {/* If field workers also use the same layout */}
       </ProtectedRoute>
     ),
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,
