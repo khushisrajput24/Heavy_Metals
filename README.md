@@ -85,6 +85,149 @@ Visualization: Google Maps API
 Report Generation: jsPDF
 Tools: VS Code, Google Colab
 
+## Agents:
+```
+                    User Uploads Dataset
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Agent 1 : Data Preprocessing Agent                          │
+├─────────────────────────────────────────────────────────────┤
+│ Input: Raw groundwater dataset                              │
+│                                                             │
+│ Tasks                                                       │
+│ • Validate dataset                                          │
+│ • Handle missing values                                     │
+│ • Remove duplicates                                         │
+│ • Detect outliers                                           │
+│ • Standardize units                                         │
+│ • Normalize data                                            │
+│                                                             │
+│ Output                                                      │
+│ ✓ Clean standardized dataset                                │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Agent 2 : Pollution Index Computation Agent                 │
+├─────────────────────────────────────────────────────────────┤
+│ Input                                                       │
+│ • Clean dataset                                             │
+│ • WHO/BIS Standards                                         │
+│                                                             │
+│ Tasks                                                       │
+│ • Calculate HPI/HMPI                                        │
+│ • Calculate HEI                                              │
+│ • Calculate Cd                                               │
+│ • Calculate MI                                               │
+│ • Composite Risk Score                                       │
+│ • Identify dominant metals                                   │
+│                                                             │
+│ Output                                                       │
+│ ✓ Pollution indices                                           │
+│ ✓ Dominant contaminants                                       │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Agent 3 : Forecast & Source Analysis Agent                  │
+├─────────────────────────────────────────────────────────────┤
+│ Input                                                       │
+│ • Historical groundwater data                               │
+│ • Current pollution indices                                 │
+│                                                             │
+│ Tasks                                                       │
+│ Forecasting                                                 │
+│ • Predict future HMPI                                       │
+│ • Predict future metal concentrations                       │
+│                                                             │
+│ Source Analysis                                             │
+│ • PCA                                                       │
+│ • Contamination Factor                                      │
+│ • Enrichment Factor                                         │
+│ • Geogenic vs Anthropogenic source detection                │
+│                                                             │
+│ Output                                                      │
+│ ✓ Forecast results                                          │
+│ ✓ Pollution source                                          │
+│ ✓ Confidence score                                          │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Agent 4 : Risk Assessment & Explainability Agent            │
+├─────────────────────────────────────────────────────────────┤
+│ Input                                                       │
+│ • Pollution indices                                         │
+│ • Forecast results                                          │
+│ • Source analysis                                           │
+│                                                             │
+│ Tasks                                                       │
+│ • Risk classification                                       │
+│ • Explainable AI analysis                                   │
+│ • Identify key contributing metals                          │
+│ • Confidence estimation                                     │
+│                                                             │
+│ Output                                                      │
+│ ✓ Safe / Moderate / Critical                                │
+│ ✓ Risk explanation                                          │
+│ ✓ Major pollutants                                          │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Agent 5 : RAG Recommendation Agent                          │
+├─────────────────────────────────────────────────────────────┤
+│ Input                                                       │
+│ • Contaminant                                                │
+│ • Risk level                                                 │
+│ • Pollution status                                           │
+│ • HMPI                                                       │
+│ • Dominant metals                                            │
+│                                                             │
+│ Retrieval                                                   │
+│ • Local remediation corpus                                  │
+│ • Tavily scientific search                                  │
+│ • arXiv papers                                               │
+│                                                             │
+│ Reasoning                                                   │
+│ • Merge retrieved knowledge                                 │
+│ • Incorporate risk profile                                  │
+│ • Generate mitigation recommendations                       │
+│                                                             │
+│ Output                                                      │
+│ ✓ Immediate actions                                         │
+│ ✓ Long-term remediation                                     │
+│ ✓ Positive indicators                                       │
+│ ✓ Supporting research citations                             │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Agent 6 : Report Generation Agent                           │
+├─────────────────────────────────────────────────────────────┤
+│ Input                                                       │
+│ • Clean dataset                                              │
+│ • Pollution indices                                          │
+│ • Forecast results                                           │
+│ • Risk assessment                                            │
+│ • Recommendations                                             │
+│                                                             │
+│ Tasks                                                       │
+│ • Generate dashboard                                         │
+│ • Maps                                                       │
+│ • Trend graphs                                               │
+│ • PDF report                                                 │
+│ • Executive summary                                          │
+│                                                             │
+│ Output                                                      │
+│ ✓ Interactive dashboard                                     │
+│ ✓ Heatmaps                                                  │
+│ ✓ PDF report                                                │
+│ ✓ Executive summary                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
 ## File structure
 
 ```
