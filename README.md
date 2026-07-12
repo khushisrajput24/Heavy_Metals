@@ -117,15 +117,15 @@ Tools: VS Code, Google Colab
 │                                                             │
 │ Tasks                                                       │
 │ • Calculate HPI/HMPI                                        │
-│ • Calculate HEI                                              │
-│ • Calculate Cd                                               │
-│ • Calculate MI                                               │
-│ • Composite Risk Score                                       │
-│ • Identify dominant metals                                   │
+│ • Calculate HEI                                             │
+│ • Calculate Cd                                              │
+│ • Calculate MI                                              │
+│ • Composite Risk Score                                      │
+│ • Identify dominant metals                                  │
 │                                                             │
-│ Output                                                       │
-│ ✓ Pollution indices                                           │
-│ ✓ Dominant contaminants                                       │
+│ Output                                                      │
+│ ✓ Pollution indices                                         │
+│ ✓ Dominant contaminants                                     │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -176,19 +176,19 @@ Tools: VS Code, Google Colab
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Agent 5 : RAG Recommendation Agent                          │
+│ Agent 5 : RAG Suggestions Agent                             │
 ├─────────────────────────────────────────────────────────────┤
 │ Input                                                       │
-│ • Contaminant                                                │
-│ • Risk level                                                 │
-│ • Pollution status                                           │
-│ • HMPI                                                       │
-│ • Dominant metals                                            │
+│ • Contaminant                                               │
+│ • Risk level                                                │
+│ • Pollution status                                          │
+│ • HMPI                                                      │
+│ • Dominant metals                                           │
 │                                                             │
 │ Retrieval                                                   │
 │ • Local remediation corpus                                  │
 │ • Tavily scientific search                                  │
-│ • arXiv papers                                               │
+│ • arXiv papers                                              │
 │                                                             │
 │ Reasoning                                                   │
 │ • Merge retrieved knowledge                                 │
@@ -207,18 +207,18 @@ Tools: VS Code, Google Colab
 │ Agent 6 : Report Generation Agent                           │
 ├─────────────────────────────────────────────────────────────┤
 │ Input                                                       │
-│ • Clean dataset                                              │
-│ • Pollution indices                                          │
-│ • Forecast results                                           │
-│ • Risk assessment                                            │
-│ • Recommendations                                             │
+│ • Clean dataset                                             │
+│ • Pollution indices                                         │
+│ • Forecast results                                          │
+│ • Risk assessment                                           │
+│ • Recommendations                                           │
 │                                                             │
 │ Tasks                                                       │
-│ • Generate dashboard                                         │
-│ • Maps                                                       │
-│ • Trend graphs                                               │
-│ • PDF report                                                 │
-│ • Executive summary                                          │
+│ • Generate dashboard                                        │
+│ • Maps                                                      │
+│ • Trend graphs                                              │
+│ • PDF report                                                │
+│ • Executive summary                                         │
 │                                                             │
 │ Output                                                      │
 │ ✓ Interactive dashboard                                     │
