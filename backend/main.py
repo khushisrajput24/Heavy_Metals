@@ -6,11 +6,17 @@ import numpy as np
 import io
 import os
 import sys
+import importlib
+from dotenv import load_dotenv
 
-# Import pickle classes
-from controllers.hmpiCalc import predict_from_api_key as predict_api_hmpi_impl, APIKeyInput
-from controllers.bulk import HMPIModel, FinalHMPIModel
-from controllers.suggestionsController import suggestionRouter as suggestions_router
+load_dotenv()
+
+# Imports
+from agents.hmpiCalc import predict_from_api_key as predict_api_hmpi_impl, APIKeyInput
+from agents.bulk import HMPIModel, FinalHMPIModel
+
+suggestion_agent_module = importlib.import_module("agents.05_suggestionAgent")
+suggestions_router = suggestion_agent_module.suggestionRouter
 
 app = FastAPI(title="HMPI Backend")
 
@@ -20,8 +26,12 @@ FRONTEND_URL = os.getenv("CORS_ORIGIN")
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    FRONTEND_URL,  # deployed frontend from .env
+    "https://heavy-metals.vercel.app",
 ]
+if FRONTEND_URL:
+    clean_url = FRONTEND_URL.strip().strip('"\'').rstrip('/')
+    if clean_url not in origins:
+        origins.append(clean_url)
 
 app.add_middleware(
     CORSMiddleware,

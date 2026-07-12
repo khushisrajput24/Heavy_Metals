@@ -1,16 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { CircleCheckBig, CircleStar, MonitorCheck, Target } from "lucide-react";
-import { Button } from "../ui/button.jsx";
+import { CircleCheckBig, CircleStar, MonitorCheck, Target, BookOpen } from "lucide-react";
 
 export const Suggestion = () => {
   const { contaminant } = useParams();
   const [data, setData] = useState(null);
-  const [expandedGroups, setExpandedGroups] = useState({
-    yellow: false,
-    blue: false,
-    green: false,
-  });
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -36,17 +30,24 @@ export const Suggestion = () => {
     if (contaminant) fetchSuggestions();
   }, [contaminant]);
 
-  const expandExplain = (group) => {
-    setExpandedGroups((prev) => ({
-      ...prev,
-      [group]: !prev[group],
-    }));
-  };
-
   if (!data)
     return (
       <p className="text-center mt-10 text-gray-500">Loading suggestions...</p>
     );
+
+  // Extract and deduplicate unique citations across all recommendation groups
+  const uniqueCitations = Array.from(
+    new Map(
+      [
+        ...(data.immediate_actions || []),
+        ...(data.long_term || []),
+        ...(data.positive_indicators || [])
+      ]
+      .flatMap(item => item.citations || [])
+      .filter(c => c && c.title)
+      .map(c => [c.title.trim().toLowerCase(), c])
+    ).values()
+  );
 
   return (
     <div id="suggestions" className="results-section active">
@@ -64,47 +65,11 @@ export const Suggestion = () => {
           <Target size={20} strokeWidth={1.8} />
           Immediate Actions Required
         </p>
-
         <ul>
           {data.immediate_actions.map((item, idx) => (
             <li key={idx}>{item.text}</li>
           ))}
         </ul>
-
-        <Button
-          type="support"
-          colorVariant="secondary"
-          onClickHandler={() => expandExplain("yellow")}
-        >
-          {expandedGroups.yellow ? "Read Less" : "Read More"}
-        </Button>
-
-        {expandedGroups.yellow && (
-          <div className="explanation-text">
-            <h4 className="font-semibold">Research References:</h4>
-
-            {data.immediate_actions.map((item, idx) => (
-              <div key={idx} className="mt-3">
-                {item.citations.length === 0 && null}
-
-                {item.citations.map((c, i) => (
-                  <div key={i} className="mt-2">
-                    <p className="font-medium">{c.title}</p>
-                    {c.doi && <p className="text-sm">DOI: {c.doi}</p>}
-                    <a
-                      href={c.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline link text-blue-600"
-                    >
-                      View Paper
-                    </a>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* BLUE GROUP */}
@@ -113,51 +78,11 @@ export const Suggestion = () => {
           <MonitorCheck size={20} strokeWidth={1.8} />
           Long-term Monitoring
         </p>
-
         <ul>
           {data.long_term.map((item, idx) => (
             <li key={idx}>{item.text}</li>
           ))}
         </ul>
-
-        <Button
-          type="support"
-          colorVariant="secondary"
-          onClickHandler={() => expandExplain("blue")}
-        >
-          {expandedGroups.blue ? "Read Less" : "Read More"}
-        </Button>
-
-        {expandedGroups.blue && (
-          <div className="explanation-text">
-            <h4 className="font-semibold">Research References:</h4>
-
-            {data.long_term.map((item, idx) => (
-              <div key={idx} className="mt-3">
-                {item.citations.length === 0 && (
-                  <p className="text-sm text-gray-500">
-                    No research references available.
-                  </p>
-                )}
-
-                {item.citations.map((c, i) => (
-                  <div key={i} className="mt-2">
-                    <p className="font-medium">{c.title}</p>
-                    {c.doi && <p className="text-sm">DOI: {c.doi}</p>}
-                    <a
-                      href={c.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline link text-blue-600"
-                    >
-                      View Paper
-                    </a>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* GREEN GROUP */}
@@ -166,52 +91,40 @@ export const Suggestion = () => {
           <CircleCheckBig size={20} strokeWidth={1.8} />
           Positive Indicators
         </h3>
-
         <ul>
           {data.positive_indicators.map((item, idx) => (
             <li key={idx}>{item.text}</li>
           ))}
         </ul>
+      </div>
 
-        <Button
-          type="support"
-          colorVariant="secondary"
-          onClickHandler={() => expandExplain("green")}
-        >
-          {expandedGroups.green ? "Read Less" : "Read More"}
-        </Button>
-
-        {expandedGroups.green && (
-          <div className="explanation-text">
-            <h4 className="font-semibold">Research References:</h4>
-
-            {data.positive_indicators.map((item, idx) => (
-              <div key={idx} className="mt-3">
-                {item.citations.length === 0 && (
-                  <p className="text-sm text-gray-500">
-                    No references for this section.
-                  </p>
+      {/* UNIFIED REFERENCES SECTION */}
+      {uniqueCitations.length > 0 && (
+        <div className="suggestion-group blue mt-6">
+          <p className="group-title flex items-center gap-2">
+            <BookOpen size={20} strokeWidth={1.8} />
+            Research References & Scientific Sources
+          </p>
+          <div className="mt-3 space-y-3">
+            {uniqueCitations.map((c, i) => (
+              <div key={i} className="p-3 bg-gray-50 border border-gray-100 rounded-lg shadow-sm">
+                <p className="font-semibold text-gray-800 text-sm">{c.title}</p>
+                {c.doi && <p className="text-xs text-gray-500 mt-1">DOI: {c.doi}</p>}
+                {c.url && (
+                  <a
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 text-xs font-semibold underline text-blue-600 hover:text-blue-800"
+                  >
+                    View Paper
+                  </a>
                 )}
-
-                {item.citations.map((c, i) => (
-                  <div key={i} className="mt-2">
-                    <p className="font-medium">{c.title}</p>
-                    {c.doi && <p className="text-sm">DOI: {c.doi}</p>}
-                    <a
-                      href={c.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline link text-blue-600"
-                    >
-                      View Paper
-                    </a>
-                  </div>
-                ))}
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
