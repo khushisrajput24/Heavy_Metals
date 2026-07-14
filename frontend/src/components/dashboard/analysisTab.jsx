@@ -18,8 +18,8 @@ function AnalysisLink() {
         to="/analysis"
         className={({ isActive }) =>
           `${isActive
-            ? 'bg-[#0e9486] text-white'
-            : 'text-[#0c7d72] hover:underline'
+            ? 'nav-active'
+            : 'nav-inactive'
           } flex items-center justify-between`
         }
         onClick={toggleDropdown} // toggle dropdown on click

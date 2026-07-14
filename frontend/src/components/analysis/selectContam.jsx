@@ -2,10 +2,12 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
+import { metals } from "../../utils/constants";
 
 export const SelectContam = () => {
   const navigate = useNavigate();
   const [contaminant, setContaminant] = useState("");
+  const options = metals;
 
   return (
     <div className="search-filter-container">
@@ -18,11 +20,11 @@ export const SelectContam = () => {
           id="contaminant"
         >
           <option value="">Select contaminant</option>
-          <option value="lead">Lead</option>
-          <option value="arsenic">Arsenic</option>
-          <option value="cadmium">Cadmium</option>
-          <option value="mercury">Mercury</option>
-          <option value="nickel">Nickel</option>
+          {options.map((metal) => (
+            <option key={metal} value={metal.toLowerCase()}>
+              {metal}
+            </option>
+          ))}
         </select>
         <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
           <ChevronDown size={20} color="black" />

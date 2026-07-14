@@ -26,8 +26,8 @@ export const NavBarField = () => {
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive
-              ? "bg-[#0e9486] text-white"
-              : "text-[#0c7d72] hover:underline"
+              ? "nav-active"
+              : "nav-inactive"
           }`
         }
       >
@@ -40,8 +40,8 @@ export const NavBarField = () => {
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive
-              ? "bg-[#0e9486] text-white"
-              : "text-[#0c7d72] hover:underline"
+              ? "nav-active"
+              : "nav-inactive"
           }`
         }
       >
@@ -54,8 +54,8 @@ export const NavBarField = () => {
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive
-              ? "bg-[#0e9486] text-white"
-              : "text-[#0c7d72] hover:underline"
+              ? "nav-active"
+              : "nav-inactive"
           }`
         }
       >

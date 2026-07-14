@@ -552,12 +552,6 @@ export const reportsData = [
   },
 ];
 
-export const COLORS = {
-  primary: "#007BFF",
-  primaryLight: "#339CFF",
-  primaryDark: "#0056B3",
-};
-
 export const languages = [
   { label: "English", code: "en" },
   { label: "हिन्दी", code: "hi" },
@@ -576,18 +570,20 @@ export const notifications = [
   "Weekly Summaries",
 ];
 
+export const metals = ["Lead", "Arsenic", "Chromium", "Mercury", "Cadmium", "Nickel"];
+
 export const permissibleLimitsUgPerL = {
-  "Iron(Fe)": 0,  
+  "Iron(Fe)": 0,
   "Lead (Pb)": 0,    // 10 µg/L
   "Cadmium (Cd)": 0,
   "Mercury (Hg)": 0,
   "Arsenic (As)": 50,
   "Chromium (Cr)": 0,
-  "Copper (Cu)": 1500, 
-  "Zinc (Zn)": 15000,  
+  "Copper (Cu)": 1500,
+  "Zinc (Zn)": 15000,
   "Nickel (Ni)": 0,
   "Manganese (Mn)": 1000,
-  "Selenium (Se)": 0, 
+  "Selenium (Se)": 0,
   "Aluminum (Al)": 200,
   "Molybdenum (Mo)": 0,
   "Silver (Ag)": 0,
@@ -596,14 +592,14 @@ export const permissibleLimitsUgPerL = {
 };
 
 export const acceptableLimitsUgPerL = {
-  "Iron(Fe)":1000,
- "Lead (Pb)": 10,  
+  "Iron(Fe)": 1000,
+  "Lead (Pb)": 10,
   "Cadmium (Cd)": 3,
   "Mercury (Hg)": 1,
   "Arsenic (As)": 10,
   "Chromium (Cr)": 50,
   "Copper (Cu)": 50,
-  "Zinc (Zn)": 5000,   
+  "Zinc (Zn)": 5000,
   "Nickel (Ni)": 20,
   "Manganese (Mn)": 100,
   "Selenium (Se)": 10,

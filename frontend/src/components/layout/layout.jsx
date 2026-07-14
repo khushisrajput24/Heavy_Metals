@@ -5,6 +5,7 @@ import { Header } from "./header";
 import "./layout.css";
 import { ScrollToTop } from "./scrollToTop";
 import { useClerk } from "@clerk/clerk-react";
+import { ChatBot } from "../chatbot/chatbot";
 
 const DEFAULT_HEADER = "Dashboard";
 
@@ -33,6 +34,7 @@ export const Layout = () => {
           <Outlet />
         </main>
         <Footer />
+        <ChatBot />
       </div>
     </div>
   );

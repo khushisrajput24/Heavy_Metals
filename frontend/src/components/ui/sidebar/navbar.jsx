@@ -8,6 +8,7 @@ import {
   BarChart2,
   Info,
   Calculator,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import Dropdown from "../../dashboard/dropdown";
 
@@ -31,8 +32,8 @@ export const NavBar = () => {
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive
-              ? "bg-[#0e9486] text-white"
-              : "text-[#0c7d72] hover:underline"
+              ? "nav-active"
+              : "nav-inactive"
           }`
         }
       >
@@ -45,8 +46,8 @@ export const NavBar = () => {
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive
-              ? "bg-[#0e9486] text-white"
-              : "text-[#0c7d72] hover:underline"
+              ? "nav-active"
+              : "nav-inactive"
           }`
         }
       >
@@ -57,8 +58,8 @@ export const NavBar = () => {
       <div
         className={`${linkBaseClass} flex items-center justify-between cursor-pointer ${
           window.location.pathname === "/user/analysis"
-            ? "bg-[#0e9486] text-white"
-            : "text-[#0c7d72] hover:underline"
+            ? "nav-active"
+            : "nav-inactive"
         }`}
         onClick={handleAnalysisClick}
       >
@@ -85,8 +86,8 @@ export const NavBar = () => {
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive
-              ? "bg-[#0e9486] text-white"
-              : "text-[#0c7d72] hover:underline"
+              ? "nav-active"
+              : "nav-inactive"
           }`
         }
       >
@@ -99,8 +100,8 @@ export const NavBar = () => {
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive
-              ? "bg-[#0e9486] text-white"
-              : "text-[#0c7d72] hover:underline"
+              ? "nav-active"
+              : "nav-inactive"
           }`
         }
       >
@@ -113,13 +114,27 @@ export const NavBar = () => {
         className={({ isActive }) =>
           `${linkBaseClass} ${
             isActive
-              ? "bg-[#0e9486] text-white"
-              : "text-[#0c7d72] hover:underline"
+              ? "nav-active"
+              : "nav-inactive"
           }`
         }
       >
         <Info size={20} strokeWidth={1.8} />
         About Us
+      </NavLink>
+
+      <NavLink
+        to="/user/settings"
+        className={({ isActive }) =>
+          `${linkBaseClass} ${
+            isActive
+              ? "nav-active"
+              : "nav-inactive"
+          }`
+        }
+      >
+        <SettingsIcon size={20} strokeWidth={1.8} />
+        Settings
       </NavLink>
     </nav>
   );
