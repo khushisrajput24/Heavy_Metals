@@ -1,6 +1,45 @@
 import { SendHorizonal, X, MessageSquare } from "lucide-react";
-import { useChatBot, renderMessageContent } from "../../utils/functions/chatbot.js";
+import { useChatBot } from "../../utils/functions/chatbot.js";
 import { metals } from "../../utils/constants";
+import { RecommendationSection } from "./recommendationSection";
+
+const renderMessageContent = (msg) => {
+    if (msg.type === "text") {
+        return <div>{msg.text}</div>;
+    }
+
+    if (msg.type === "suggestions") {
+        const { immediate_actions, long_term, positive_indicators } = msg.data;
+
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 'bold', borderBottom: '1px solid var(--color-border)', paddingBottom: '3px', marginBottom: '4px', textTransform: 'capitalize', color: 'var(--color-primary)' }}>
+                    Analysis: {msg.metal}
+                </div>
+
+                <RecommendationSection
+                    title="Immediate Actions"
+                    items={immediate_actions}
+                    variant="immediate"
+                />
+
+                <RecommendationSection
+                    title="Long-term Methods"
+                    items={long_term}
+                    variant="longterm"
+                />
+
+                <RecommendationSection
+                    title="Positive Indicators"
+                    items={positive_indicators}
+                    variant="positive"
+                />
+            </div>
+        );
+    }
+    return null;
+};
+
 
 export const ChatBot = () => {
     const {

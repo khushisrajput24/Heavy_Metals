@@ -20,7 +20,7 @@ export const fetchSuggestions = async (contaminant) => {
     if (!contaminant) {
         throw new Error("Contaminant parameter is required.");
     }
-    
+
     const baseUrl = getBaseUrl();
     const endpoint = `${baseUrl}/user/analysis/suggestions`;
 
@@ -31,10 +31,10 @@ export const fetchSuggestions = async (contaminant) => {
 
         // Ensure returned structure matches our expected shape
         const data = response.data;
-        if (data && (data.immediate_actions || data.long_term || data.positive_indicators)) {
+        if (data && (data.response_type || data.text !== undefined || data.immediate_actions || data.long_term || data.positive_indicators)) {
             return data;
         }
-        
+
         throw new Error("Suggestions data format is invalid.");
     } catch (error) {
         console.error("SuggestionsService error:", error);

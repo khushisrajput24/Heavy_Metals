@@ -91,8 +91,8 @@ def api_suggestions(
 ):
     contaminant_clean = contaminant.strip().lower()
     
-    # Define query dynamically for any searched contaminant
-    query = f"Explain {contaminant_clean} removal methods. Classify them into Immediate actions, Long-term methods and Positive indicators. Also extract the research paper citations."
+    # Define query dynamically
+    query = contaminant.strip()
 
     # Fetch papers from arXiv + Tavily
     papers = fetch_papers_arxiv_tavily(contaminant_clean)
@@ -116,9 +116,14 @@ def api_suggestions(
 
     # Base prompt instructions
     base_instructions = """
-  You are a strict Environmental Policy and RAG Recommendation Agent (Agent 5).
-  Classify your recommendations into Immediate actions, Long-term methods, and Positive indicators.
-  Every item in immediate_actions, long_term, and positive_indicators must contain:
+  You are an Environmental Policy, RAG Recommendation, and Conversational Chatbot Agent.
+  The user's query is provided in the QUESTION section below.
+  Your task is to analyze the user's query and decide if they are asking for structured environmental mitigation suggestions/remediation actions for a water contaminant, OR if they are asking a general/conversational question, greeting, introduction, or generic query that doesn't fit a structured treatment recommendation template.
+
+  If it is a structured contaminant mitigation/treatment suggestion request (or simply a contaminant name like "lead", "arsenic", "molybdenum", "chromium", etc.):
+  - Set "response_type" to "suggestions"
+  - Populate "immediate_actions", "long_term", and "positive_indicators" fields.
+  - Every item in those lists must contain:
       - "text": the recommended method or indicator
       - "citations": list of papers matched from the context resources provided.
         Each citation object in the list must contain:
@@ -127,9 +132,15 @@ def api_suggestions(
           - "url": URL of the paper
         If no verified citation exists, return an empty list [].
 
+  If it is a general question, greeting, introduction, conversational message, or query that does not map directly to specific mitigation/remediation actions:
+  - Set "response_type" to "text"
+  - Populate the "text" field with a natural, helpful conversational response. (Keep "immediate_actions", "long_term", and "positive_indicators" as empty lists []).
+
   RETURN ONLY THIS EXACT JSON (NO MARKDOWN OR WRAPPING):
 
   {
+    "response_type": "suggestions" or "text",
+    "text": "Conversational reply text here, or empty string if response_type is suggestions",
     "immediate_actions": [
       {
         "text": "some method",

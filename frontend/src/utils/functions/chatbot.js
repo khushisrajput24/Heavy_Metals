@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { fetchSuggestions } from "../../services/suggestionsService";
 import { processMessage } from "./messageProcessor";
 import { scrollToBottom } from "./userNavs";
-import { RecommendationSection } from "../../components/chatbot/recommendationSection";
 
 export const useChatBot = () => {
     const [isChatOpen, setIsChatOpen] = useState(false);
@@ -57,11 +56,20 @@ export const useChatBot = () => {
             // Fetch recommendations using the suggestions service (DIP)
             const suggestions = await fetchSuggestions(text);
             
+            // Check if response is a structured suggestion list or general conversational text
+            const isSuggestions = suggestions.response_type === "suggestions" || 
+                                  (!suggestions.response_type && (
+                                      (suggestions.immediate_actions && suggestions.immediate_actions.length > 0) || 
+                                      (suggestions.long_term && suggestions.long_term.length > 0) || 
+                                      (suggestions.positive_indicators && suggestions.positive_indicators.length > 0)
+                                  ));
+
             setMessages((prev) => [
                 ...prev,
                 {
                     sender: "bot",
-                    type: "suggestions",
+                    type: isSuggestions ? "suggestions" : "text",
+                    text: suggestions.text || "",
                     data: suggestions,
                     metal: text
                 }
@@ -97,41 +105,4 @@ export const useChatBot = () => {
         handleSend,
         handleFormSubmit
     };
-};
-
-export const renderMessageContent = (msg) => {
-    if (msg.type === "text") {
-        return <div>{msg.text}</div>;
-    }
-
-    if (msg.type === "suggestions") {
-        const { immediate_actions, long_term, positive_indicators } = msg.data;
-
-        return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 'bold', borderBottom: '1px solid var(--color-border)', paddingBottom: '3px', marginBottom: '4px', textTransform: 'capitalize', color: 'var(--color-primary)' }}>
-                    Analysis: {msg.metal}
-                </div>
-
-                <RecommendationSection 
-                    title="Immediate Actions" 
-                    items={immediate_actions} 
-                    variant="immediate" 
-                />
-
-                <RecommendationSection 
-                    title="Long-term Methods" 
-                    items={long_term} 
-                    variant="longterm" 
-                />
-
-                <RecommendationSection 
-                    title="Positive Indicators" 
-                    items={positive_indicators} 
-                    variant="positive" 
-                />
-            </div>
-        );
-    }
-    return null;
-};
+};
